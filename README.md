@@ -1,5 +1,7 @@
 # AI-Powered Monaco Editor Example
 
+<img width="1201" height="628" alt="monaco" src="https://github.com/user-attachments/assets/13097625-887b-4d60-a2a1-b473b6ddcb03" />
+
 This example demonstrates how to build an AI-powered code editor using **MonacoEditorService** and the **Anthropic Claude API**. The AI can edit code using a simple command-based system without requiring Anthropic's tool use feature.
 
 ## Features
