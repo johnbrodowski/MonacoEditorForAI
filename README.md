@@ -1,4 +1,11 @@
-# AI-Powered Monaco Editor Example
+# Monaco Editor For AI
+
+Seamless Monaco Editor (VS Code's core) integration for .NET AI/agent applications.
+
+Built for real-time code generation, autonomous editing, and local LLM workflows — with streaming support, dynamic language switching, and file sync.
+
+Battle-tested in production autonomous agents.
+ 
 
 <img width="1201" height="628" alt="monaco" src="https://github.com/user-attachments/assets/13097625-887b-4d60-a2a1-b473b6ddcb03" />
 
