@@ -1,0 +1,543 @@
+﻿        private async Task RunDemonstrationAsync()
+        {
+            int delayBetweenTests = 3000; // 2 seconds between tests
+
+            try
+            {
+                // Wait for the editor to be fully ready before starting the test
+                await _editorService.EditorReady;
+
+                Debug.WriteLine("=== INTERACTIVE MONACO EDITOR FUNCTIONALITY TEST ===");
+                Debug.WriteLine($"Test started at: {DateTime.Now}");
+                Debug.WriteLine("This test will prompt you after each operation to confirm what happened.");
+                await Task.Delay(delayBetweenTests);
+
+                // Test 1: Basic content retrieval
+                Debug.WriteLine("\n[TEST 1] Getting all text...");
+                try
+                {
+                    string allText = await _editorService.GetAllTextAsync();
+                    Debug.WriteLine($"  Operation completed: Retrieved {allText.Length} characters");
+                    Debug.WriteLine($"  First 100 chars: {allText.Substring(0, Math.Min(100, allText.Length))}...");
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"  Operation failed: {ex.Message}");
+                }
+
+                DialogResult response1 = await ShowMessageBoxAsync(
+                    "TEST 1: Basic text retrieval\n\nExpected: The editor should display the C# test code without any visual changes.\n\nDid the operation complete successfully?",
+                    "Test 1 Confirmation", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                Debug.WriteLine($"  User response: {(response1 == DialogResult.Yes ? "SUCCESS" : "FAILED")}");
+                await Task.Delay(1000);
+
+                // Test 2: Line count
+                Debug.WriteLine("\n[TEST 2] counting lines...");
+                try
+                {
+                    int lineCount = await _editorService.CountLinesAsync();
+                    Debug.WriteLine($"  Operation completed: Editor has {lineCount} lines");
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"  Operation failed: {ex.Message}");
+                }
+
+                DialogResult response2 = await ShowMessageBoxAsync(
+                    "TEST 2: Line count\n\nExpected: Should report the correct number of lines in the editor (around 20 lines).\n\nDid the operation complete successfully?",
+                    "Test 2 Confirmation", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                Debug.WriteLine($"  User response: {(response2 == DialogResult.Yes ? "SUCCESS" : "FAILED")}");
+                await Task.Delay(1000);
+
+                // Test 3: Get specific line
+                Debug.WriteLine("\n[TEST 3] Getting line 5 content...");
+                try
+                {
+                    string line5 = await _editorService.GetLineTextAsync(5);
+                    Debug.WriteLine($"  Operation completed: Line 5 content: '{line5}'");
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"  Operation failed: {ex.Message}");
+                }
+
+                DialogResult response3 = await ShowMessageBoxAsync(
+                    "TEST 3: Get specific line\n\nExpected: Should retrieve the content of line 5 (likely 'namespace TestNamespace').\n\nDid the operation complete successfully?",
+                    "Test 3 Confirmation", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                Debug.WriteLine($"  User response: {(response3 == DialogResult.Yes ? "SUCCESS" : "FAILED")}");
+                await Task.Delay(1000);
+
+                // Test 4: First highlight attempt
+                Debug.WriteLine("\n[TEST 4] First highlight attempt (lines 3-5)...");
+                try
+                {
+                    await _editorService.HighlightLineRangeAsync(3, 5);
+                    Debug.WriteLine($"  Operation completed: Highlight command sent for lines 3-5");
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"  Operation failed: {ex.Message}");
+                }
+
+                DialogResult response4 = await ShowMessageBoxAsync(
+                    "TEST 4: First highlight\n\nExpected: Lines 3-5 should be highlighted with a blue/purple background color.\n\nDo you see the highlight on lines 3-5?",
+                    "Test 4 Confirmation", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                Debug.WriteLine($"  User response: {(response4 == DialogResult.Yes ? "SUCCESS" : "FAILED")}");
+                await Task.Delay(delayBetweenTests);
+
+                // Test 5: Second highlight attempt (should replace first)
+                Debug.WriteLine("\n[TEST 5] Second highlight attempt (lines 8-10)...");
+                try
+                {
+                    await _editorService.HighlightLineRangeAsync(8, 10);
+                    Debug.WriteLine($"  Operation completed: Highlight command sent for lines 8-10");
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"  Operation failed: {ex.Message}");
+                }
+
+                DialogResult response5 = await ShowMessageBoxAsync(
+                    "TEST 5: Second highlight (CRITICAL TEST)\n\nExpected: The highlight should MOVE from lines 3-5 to lines 8-10.\nThe old highlight should disappear and new highlight should appear.\n\nDid the highlight move correctly to lines 8-10?",
+                    "Test 5 Confirmation", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                Debug.WriteLine($"  User response: {(response5 == DialogResult.Yes ? "SUCCESS" : "FAILED")}");
+                await Task.Delay(delayBetweenTests);
+
+                // Test 6: First bookmark
+                Debug.WriteLine("\n[TEST 6] First bookmark (line 7)...");
+                try
+                {
+                    await _editorService.ToggleBookmarkAsync(7);
+                    Debug.WriteLine($"  Operation completed: Bookmark command sent for line 7");
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"  Operation failed: {ex.Message}");
+                }
+
+                DialogResult response6 = await ShowMessageBoxAsync(
+                    "TEST 6: First bookmark\n\nExpected: A blue bookmark icon should appear in the gutter (left margin) of line 7.\n\nDo you see the bookmark icon on line 7?",
+                    "Test 6 Confirmation", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                Debug.WriteLine($"  User response: {(response6 == DialogResult.Yes ? "SUCCESS" : "FAILED")}");
+                await Task.Delay(delayBetweenTests);
+
+                // Test 7: Second bookmark
+                Debug.WriteLine("\n[TEST 7] Second bookmark (line 12)...");
+                try
+                {
+                    await _editorService.ToggleBookmarkAsync(12);
+                    Debug.WriteLine($"  Operation completed: Bookmark command sent for line 12");
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"  Operation failed: {ex.Message}");
+                }
+
+                DialogResult response7 = await ShowMessageBoxAsync(
+                    "TEST 7: Second bookmark (CRITICAL TEST)\n\nExpected: A blue bookmark icon should appear in the gutter of line 12.\nThe bookmark on line 7 should STILL be there.\n\nDo you see bookmarks on BOTH line 7 AND line 12?",
+                    "Test 7 Confirmation", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                Debug.WriteLine($"  User response: {(response7 == DialogResult.Yes ? "SUCCESS" : "FAILED")}");
+                await Task.Delay(delayBetweenTests);
+
+                // Test 8: Check decoration info
+                Debug.WriteLine("\n[TEST 8] Checking decoration info for line 7...");
+                try
+                {
+                    var decorationInfo = await _editorService.GetDecorationInfoAsync(7);
+                    Debug.WriteLine($"  Operation completed: Decoration info: {decorationInfo}");
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"  Operation failed: {ex.Message}");
+                }
+
+                DialogResult response8 = await ShowMessageBoxAsync(
+                    "TEST 8: Decoration info check\n\nExpected: This is a background check - no visual changes should occur.\nThe debug output should show decoration information for line 7.\n\nDid the operation complete without errors?",
+                    "Test 8 Confirmation", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                Debug.WriteLine($"  User response: {(response8 == DialogResult.Yes ? "SUCCESS" : "FAILED")}");
+                await Task.Delay(1000);
+
+                // Test 9: Check decoration info for line 12
+                Debug.WriteLine("\n[TEST 9] Checking decoration info for line 12...");
+                try
+                {
+                    var decorationInfo = await _editorService.GetDecorationInfoAsync(12);
+                    Debug.WriteLine($"  Operation completed: Decoration info: {decorationInfo}");
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"  Operation failed: {ex.Message}");
+                }
+
+                DialogResult response9 = await ShowMessageBoxAsync(
+                    "TEST 9: Decoration info check\n\nExpected: This is a background check - no visual changes should occur.\nThe debug output should show decoration information for line 12.\n\nDid the operation complete without errors?",
+                    "Test 9 Confirmation", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                Debug.WriteLine($"  User response: {(response9 == DialogResult.Yes ? "SUCCESS" : "FAILED")}");
+                await Task.Delay(1000);
+
+                // Test 10: Toggle bookmark off
+                Debug.WriteLine("\n[TEST 10] Toggle bookmark off (line 7)...");
+                try
+                {
+                    await _editorService.ToggleBookmarkAsync(7);
+                    Debug.WriteLine($"  Operation completed: Toggle bookmark command sent for line 7");
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"  Operation failed: {ex.Message}");
+                }
+
+                DialogResult response10 = await ShowMessageBoxAsync(
+                    "TEST 10: Toggle bookmark off\n\nExpected: The bookmark icon on line 7 should DISAPPEAR.\nThe bookmark on line 12 should REMAIN.\n\nDid the bookmark on line 7 disappear while line 12 bookmark remains?",
+                    "Test 10 Confirmation", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                Debug.WriteLine($"  User response: {(response10 == DialogResult.Yes ? "SUCCESS" : "FAILED")}");
+                await Task.Delay(delayBetweenTests);
+
+                // Test 11: Third highlight attempt
+                Debug.WriteLine("\n[TEST 11] Third highlight attempt (lines 15-17)...");
+                try
+                {
+                    await _editorService.HighlightLineRangeAsync(15, 17);
+                    Debug.WriteLine($"  Operation completed: Highlight command sent for lines 15-17");
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"  Operation failed: {ex.Message}");
+                }
+
+                DialogResult response11 = await ShowMessageBoxAsync(
+                    "TEST 11: Third highlight (CRITICAL TEST)\n\nExpected: The highlight should MOVE from lines 8-10 to lines 15-17.\nOnly lines 15-17 should be highlighted now.\n\nDid the highlight move correctly to lines 15-17?",
+                    "Test 11 Confirmation", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                Debug.WriteLine($"  User response: {(response11 == DialogResult.Yes ? "SUCCESS" : "FAILED")}");
+                await Task.Delay(delayBetweenTests);
+
+                // Test 12: Replace line test
+                Debug.WriteLine("\n[TEST 12] Replace line 9...");
+                try
+                {
+                    await _editorService.ReplaceLineAsync(9, "            Console.WriteLine(\"This line was replaced by test!\");");
+                    Debug.WriteLine($"  Operation completed: Line 9 replacement command sent");
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"  Operation failed: {ex.Message}");
+                }
+
+                DialogResult response12 = await ShowMessageBoxAsync(
+                    "TEST 12: Replace line\n\nExpected: Line 9 should now contain the text 'Console.WriteLine(\"This line was replaced by test!\");'\nThe highlight should still be on lines 15-17.\n\nDid line 9 get replaced with the new text?",
+                    "Test 12 Confirmation", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                Debug.WriteLine($"  User response: {(response12 == DialogResult.Yes ? "SUCCESS" : "FAILED")}");
+                await Task.Delay(delayBetweenTests);
+
+                // Test 13: Fourth highlight attempt (after replacement)
+                Debug.WriteLine("\n[TEST 13] Fourth highlight attempt after replacement (lines 6-8)...");
+                try
+                {
+                    await _editorService.HighlightLineRangeAsync(6, 8);
+                    Debug.WriteLine($"  Operation completed: Highlight command sent for lines 6-8 after text replacement");
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"  Operation failed: {ex.Message}");
+                }
+
+                DialogResult response13 = await ShowMessageBoxAsync(
+                    "TEST 13: Fourth highlight after replacement (CRITICAL TEST)\n\nExpected: The highlight should MOVE from lines 15-17 to lines 6-8.\nThis tests if highlights work after text modifications.\n\nDid the highlight move correctly to lines 6-8?",
+                    "Test 13 Confirmation", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                Debug.WriteLine($"  User response: {(response13 == DialogResult.Yes ? "SUCCESS" : "FAILED")}");
+                await Task.Delay(delayBetweenTests);
+
+                // Test 14: Clear all decorations
+                Debug.WriteLine("\n[TEST 14] Clear all decorations...");
+                try
+                {
+                    await _editorService.ClearAllDecorationsAsync();
+                    Debug.WriteLine($"  Operation completed: Clear all decorations command sent");
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"  Operation failed: {ex.Message}");
+                }
+
+                DialogResult response14 = await ShowMessageBoxAsync(
+                    "TEST 14: Clear all decorations\n\nExpected: ALL highlights and bookmarks should disappear.\nThe editor should have no blue highlights or bookmark icons.\n\nDid all decorations (highlights and bookmarks) disappear?",
+                    "Test 14 Confirmation", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                Debug.WriteLine($"  User response: {(response14 == DialogResult.Yes ? "SUCCESS" : "FAILED")}");
+                await Task.Delay(delayBetweenTests);
+
+                // Test 15: Highlight after clearing
+                Debug.WriteLine("\n[TEST 15] Highlight after clearing (lines 10-12)...");
+                try
+                {
+                    await _editorService.HighlightLineRangeAsync(10, 12);
+                    Debug.WriteLine($"  Operation completed: Highlight command sent for lines 10-12 after clearing");
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"  Operation failed: {ex.Message}");
+                }
+
+                DialogResult response15 = await ShowMessageBoxAsync(
+                    "TEST 15: Highlight after clearing (CRITICAL TEST)\n\nExpected: Lines 10-12 should be highlighted with blue/purple background.\nThis tests if highlights work after clearing all decorations.\n\nDo you see the highlight on lines 10-12?",
+                    "Test 15 Confirmation", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                Debug.WriteLine($"  User response: {(response15 == DialogResult.Yes ? "SUCCESS" : "FAILED")}");
+                await Task.Delay(delayBetweenTests);
+
+                // Test 16: Bookmark after clearing
+                Debug.WriteLine("\n[TEST 16] Bookmark after clearing (line 14)...");
+                try
+                {
+                    await _editorService.ToggleBookmarkAsync(14);
+                    Debug.WriteLine($"  Operation completed: Bookmark command sent for line 14 after clearing");
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"  Operation failed: {ex.Message}");
+                }
+
+                DialogResult response16 = await ShowMessageBoxAsync(
+                    "TEST 16: Bookmark after clearing (CRITICAL TEST)\n\nExpected: A blue bookmark icon should appear on line 14.\nThis tests if bookmarks work after clearing all decorations.\n\nDo you see the bookmark icon on line 14?",
+                    "Test 16 Confirmation", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                Debug.WriteLine($"  User response: {(response16 == DialogResult.Yes ? "SUCCESS" : "FAILED")}");
+                await Task.Delay(delayBetweenTests);
+
+                // Test 17: Final state check
+                Debug.WriteLine("\n[TEST 17] Final decoration state check...");
+                try
+                {
+                    var decorationInfo = await _editorService.GetDecorationInfoAsync(14);
+                    Debug.WriteLine($"  Operation completed: Line 14 decorations: {decorationInfo}");
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"  Operation failed: {ex.Message}");
+                }
+
+                DialogResult response17 = await ShowMessageBoxAsync(
+                    "TEST 17: Final state check\n\nExpected: This is a background check - no visual changes.\nThe debug output should show decoration information for line 14.\n\nDid the operation complete without errors?",
+                    "Test 17 Confirmation", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                Debug.WriteLine($"  User response: {(response17 == DialogResult.Yes ? "SUCCESS" : "FAILED")}");
+
+                string tempFile = Path.GetTempFileName();
+
+                // Test 18: SaveToFileAsync
+                Debug.WriteLine("\n[TEST 18] Saving to file...");
+                try
+                {
+                    await _editorService.SaveToFileAsync(tempFile);
+                    Debug.WriteLine($"  Operation completed: Saved to {tempFile}");
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"  Operation failed: {ex.Message}");
+                }
+
+                DialogResult response18 = await ShowMessageBoxAsync(
+                    "TEST 18: Save to file\n\nExpected: The current editor content is saved to a temporary file.\n\nDid the operation complete successfully?",
+                    "Test 18 Confirmation", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                Debug.WriteLine($"  User response: {(response18 == DialogResult.Yes ? "SUCCESS" : "FAILED")}");
+                await Task.Delay(1000);
+
+                // Test 19: Modify content with InsertTextAsync
+                Debug.WriteLine("\n[TEST 19] Modifying content by inserting text...");
+                try
+                {
+                    await _editorService.InsertTextAsync(10, 1, "// Inserted comment\n");
+                    Debug.WriteLine($"  Operation completed: Inserted text at line 10, column 1");
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"  Operation failed: {ex.Message}");
+                }
+
+                DialogResult response19 = await ShowMessageBoxAsync(
+                    "TEST 19: Insert text\n\nExpected: A comment '// Inserted comment' is inserted at line 10.\n\nDo you see the inserted comment at line 10?",
+                    "Test 19 Confirmation", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                Debug.WriteLine($"  User response: {(response19 == DialogResult.Yes ? "SUCCESS" : "FAILED")}");
+                await Task.Delay(delayBetweenTests);
+
+                // Test 20: LoadFromFileAsync
+                Debug.WriteLine("\n[TEST 20] Loading from file...");
+                try
+                {
+                    await _editorService.LoadFromFileAsync(tempFile);
+                    Debug.WriteLine($"  Operation completed: Loaded from {tempFile}");
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"  Operation failed: {ex.Message}");
+                }
+
+                DialogResult response20 = await ShowMessageBoxAsync(
+                    "TEST 20: Load from file\n\nExpected: The editor content is restored to the state before insertion.\nThe inserted comment should be gone.\n\nIs the content restored correctly?",
+                    "Test 20 Confirmation", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                Debug.WriteLine($"  User response: {(response20 == DialogResult.Yes ? "SUCCESS" : "FAILED")}");
+                await Task.Delay(1000);
+
+                // Test 21: ReplaceLineRangeAsync
+                Debug.WriteLine("\n[TEST 21] Replacing line range 5-7...");
+                try
+                {
+                    string newText = "    // Replaced range line 1\n    // Replaced range line 2\n";
+                    await _editorService.ReplaceLineRangeAsync(5, 7, newText);
+                    Debug.WriteLine($"  Operation completed: Replaced lines 5-7 with new text");
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"  Operation failed: {ex.Message}");
+                }
+
+                DialogResult response21 = await ShowMessageBoxAsync(
+                    "TEST 21: Replace line range\n\nExpected: Lines 5-7 are replaced with two new lines: '// Replaced range line 1' and '// Replaced range line 2'.\n\nDo you see the replaced lines?",
+                    "Test 21 Confirmation", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                Debug.WriteLine($"  User response: {(response21 == DialogResult.Yes ? "SUCCESS" : "FAILED")}");
+                await Task.Delay(delayBetweenTests);
+
+                // Test 22: DeleteLineRangeAsync
+                Debug.WriteLine("\n[TEST 22] Deleting lines 18-20...");
+                try
+                {
+                    await _editorService.DeleteLineRangeAsync(18, 20);
+                    Debug.WriteLine($"  Operation completed: Deleted lines 18-20");
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"  Operation failed: {ex.Message}");
+                }
+
+                DialogResult response22 = await ShowMessageBoxAsync(
+                    "TEST 22: Delete line range\n\nExpected: Lines 18-20 are removed from the editor.\n\nAre lines 18-20 deleted?",
+                    "Test 22 Confirmation", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                Debug.WriteLine($"  User response: {(response22 == DialogResult.Yes ? "SUCCESS" : "FAILED")}");
+                await Task.Delay(delayBetweenTests);
+
+                // Test 23: SetCursorPositionAsync and InsertTextAsync
+                Debug.WriteLine("\n[TEST 23] Setting cursor and inserting text...");
+                try
+                {
+                    await _editorService.SetCursorPositionAsync(12, 5);
+                    await _editorService.InsertTextAsync(12, 5, "/* inserted */");
+                    Debug.WriteLine($"  Operation completed: Set cursor to line 12, column 5 and inserted '/* inserted */'");
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"  Operation failed: {ex.Message}");
+                }
+
+                DialogResult response23 = await ShowMessageBoxAsync(
+                    "TEST 23: Set cursor and insert text\n\nExpected: Text '/* inserted */' is inserted at line 12, column 5.\n\nDo you see the inserted text at the correct position?",
+                    "Test 23 Confirmation", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                Debug.WriteLine($"  User response: {(response23 == DialogResult.Yes ? "SUCCESS" : "FAILED")}");
+                await Task.Delay(delayBetweenTests);
+
+                // Test 24: Streaming text with BeginStreamAsync, StreamChunkAsync, EndStreamAsync
+                Debug.WriteLine("\n[TEST 24] Streaming text...");
+                try
+                {
+                    await _editorService.BeginStreamAsync();
+                    await _editorService.StreamChunkAsync("Streamed line 1\n");
+                    await _editorService.StreamChunkAsync("Streamed line 2\n");
+                    await _editorService.EndStreamAsync();
+                    Debug.WriteLine($"  Operation completed: Streamed two lines");
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"  Operation failed: {ex.Message}");
+                }
+
+                DialogResult response24 = await ShowMessageBoxAsync(
+                    "TEST 24: Streaming text\n\nExpected: Two lines 'Streamed line 1' and 'Streamed line 2' are appended to the editor.\n\nDo you see the streamed lines at the end of the content?",
+                    "Test 24 Confirmation", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                Debug.WriteLine($"  User response: {(response24 == DialogResult.Yes ? "SUCCESS" : "FAILED")}");
+                await Task.Delay(delayBetweenTests);
+
+                // Test 25: ClearHighlightAsync
+                Debug.WriteLine("\n[TEST 25] Highlighting lines 3-5 and then clearing highlight...");
+                try
+                {
+                    await _editorService.HighlightLineRangeAsync(3, 5);
+                    Debug.WriteLine($"  Highlighted lines 3-5");
+                    await Task.Delay(delayBetweenTests); // Give time to see the highlight
+                    await _editorService.ClearHighlightAsync();
+                    Debug.WriteLine($"  Cleared highlight");
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"  Operation failed: {ex.Message}");
+                }
+
+                DialogResult response25 = await ShowMessageBoxAsync(
+                    "TEST 25: Clear highlight\n\nExpected: Lines 3-5 are highlighted, then the highlight is cleared.\n\nDid the highlight appear and then disappear correctly?",
+                    "Test 25 Confirmation", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                Debug.WriteLine($"  User response: {(response25 == DialogResult.Yes ? "SUCCESS" : "FAILED")}");
+                await Task.Delay(delayBetweenTests);
+
+                // Test 26: GetLineRangeAsync
+                Debug.WriteLine("\n[TEST 26] Getting line range 8-10...");
+                try
+                {
+                    string rangeText = await _editorService.GetLineRangeAsync(8, 10);
+                    Debug.WriteLine($"  Operation completed: Retrieved text: {rangeText.Substring(0, Math.Min(100, rangeText.Length))}...");
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"  Operation failed: {ex.Message}");
+                }
+
+                DialogResult response26 = await ShowMessageBoxAsync(
+                    "TEST 26: Get line range\n\nExpected: Retrieves the text content of lines 8-10.\nThe debug output should show the text (likely including code like 'public class TestClass {').\n\nDid the operation complete successfully and show the correct text in the debug output?",
+                    "Test 26 Confirmation", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                Debug.WriteLine($"  User response: {(response26 == DialogResult.Yes ? "SUCCESS" : "FAILED")}");
+                await Task.Delay(delayBetweenTests);
+
+                // Test 27: GetSelectedTextAsync
+                Debug.WriteLine("\n[TEST 27] Getting selected text...");
+                try
+                {
+                    await ShowMessageBoxAsync(
+                        "Please select text in the editor (e.g., lines 8-10) and click OK to continue.",
+                        "Test 27 Preparation", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    string selectedText = await _editorService.GetSelectedTextAsync();
+                    Debug.WriteLine($"  Operation completed: Retrieved text: {selectedText.Substring(0, Math.Min(100, selectedText.Length))}...");
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"  Operation failed: {ex.Message}");
+                }
+
+                DialogResult response27 = await ShowMessageBoxAsync(
+                    "TEST 27: Get selected text\n\nExpected: Retrieves the currently selected text.\nThe debug output should show the text you selected (or empty if none).\n\nDid the operation complete successfully and show the correct text in the debug output?",
+                    "Test 27 Confirmation", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                Debug.WriteLine($"  User response: {(response27 == DialogResult.Yes ? "SUCCESS" : "FAILED")}");
+                await Task.Delay(delayBetweenTests);
+
+                // Test 28: GetPositionAsync
+                Debug.WriteLine("\n[TEST 28] Getting cursor position...");
+                try
+                {
+                    await ShowMessageBoxAsync(
+                        "Please place the cursor in the editor (e.g., on line 8, column 1) and click OK to continue.",
+                        "Test 28 Preparation", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    var (lineNumber, column) = await _editorService.GetPositionAsync();
+                    Debug.WriteLine($"  Operation completed: Cursor at line {lineNumber}, column {column}");
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"  Operation failed: {ex.Message}");
+                }
+
+                DialogResult response28 = await ShowMessageBoxAsync(
+                    "TEST 28: Get cursor position\n\nExpected: Retrieves the current cursor position.\nThe debug output should show the line and column (e.g., 'line 8, column 1').\n\nDid the operation complete successfully and show the correct position in the debug output?",
+                    "Test 28 Confirmation", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                Debug.WriteLine($"  User response: {(response28 == DialogResult.Yes ? "SUCCESS" : "FAILED")}");
+                await Task.Delay(delayBetweenTests);
+
+                Debug.WriteLine("\n=== ALL TESTS COMPLETED ===");
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"\n=== CRITICAL ERROR IN TEST ===");
+                Debug.WriteLine($"Error: {ex.Message}");
+                Debug.WriteLine($"Stack: {ex.StackTrace}");
+            }
+        }
