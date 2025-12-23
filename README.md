@@ -1,367 +1,462 @@
-# Monaco Editor Service
+# AI-Powered Monaco Editor Example
 
-A powerful C# wrapper for integrating the **Monaco Editor** (the code editor that powers Visual Studio Code) into Windows Forms applications using WebView2.
+This example demonstrates how to build an AI-powered code editor using **MonacoEditorService** and the **Anthropic Claude API**. The AI can edit code using a simple command-based system without requiring Anthropic's tool use feature.
 
 ## Features
 
-- **Full Monaco Editor Integration** - Embed VS Code's editor directly in your Windows Forms apps
-- **Rich API** - Comprehensive methods for editor manipulation and control
-- **File Operations** - Load, save, and manipulate file content
-- **Syntax Highlighting** - Support for all Monaco Editor languages
-- **Text Manipulation** - Insert, replace, delete, and stream text
-- **Line Operations** - Get, replace, and manipulate individual lines or ranges
-- **Precise Range Operations** - Get, insert, delete, replace, and select text at exact character positions
-- **Visual Decorations** - Highlight lines and add bookmarks
-- **Cursor Management** - Set position and get current location
-- **Streaming Support** - Stream text chunks for real-time updates (perfect for AI code generation)
-- **Async/Await** - Full async support for smooth UI interactions
+- **Monaco Editor Integration**: Full-featured code editor powered by VS Code's Monaco Editor
+- **AI-Powered Editing**: Claude AI can understand code and make targeted edits
+- **Command-Based System**: Simple JSON command format for AI to execute edits
+- **Bottom-to-Top Processing**: Commands are executed from highest to lowest line number to prevent line shifts
+- **8 Command Types**:
+  - `insertLine` - Insert a new line at specified position
+  - `replaceLine` - Replace a single line
+  - `replaceLineRange` - Replace multiple consecutive lines
+  - `deleteLine` - Delete a single line
+  - `deleteLineRange` - Delete a line range
+  - `highlightLineRange` - Highlight lines for visual emphasis
+  - `clearHighlight` - Clear all highlights
+  - `toggleBookmark` - Toggle bookmarks on specific lines
+- **Command Log**: See exactly what commands the AI executed
+- **File Operations**: Load and save files
 
-## Requirements
+## Prerequisites
 
-- **.NET 10.0** (or modify the project file for your target framework)
-- **Windows Forms** application
-- **WebView2 Runtime** (usually pre-installed on Windows 10/11)
-- **Monaco Editor files** - Download from [Monaco Editor](https://microsoft.github.io/monaco-editor/)
+1. **.NET 10.0 SDK** or later
+2. **Visual Studio 2022** (or compatible IDE)
+3. **Anthropic API Key** - Get one at [console.anthropic.com](https://console.anthropic.com)
+4. **Monaco Editor Files** - See setup instructions below
+5. **WebView2 Runtime** - Usually pre-installed on Windows 11
 
-## Installation
+## Setup Instructions
 
-### 1. Add NuGet Package
-
-```bash
-# Coming soon - NuGet package publication pending
-# For now, clone and reference the project directly
-```
-
-### 2. Clone and Reference
+### 1. Clone and Build
 
 ```bash
-git clone https://github.com/johnbrodowski/Monaco-Editor-Service.git
+git clone <repository-url>
+cd MonacoEditorServiceWithAiEdit
+dotnet build
 ```
 
-Then add a project reference in your Windows Forms application.
+### 2. Install Monaco Editor Files
 
-### 3. Download Monaco Editor
+The Monaco Editor files need to be available for the WebView2 control. You have two options:
 
-Download Monaco Editor files from the [official website](https://microsoft.github.io/monaco-editor/) and place them in your application directory:
+#### Option A: Download Automatically (Recommended)
 
-```
-YourApp/
-├── monaco-editor/
-│   └── min/
-│       └── vs/
-│           ├── loader.js
-│           ├── editor/
-│           └── ...
-```
-
-## Quick Start
-
-> **💡 Want a complete working example?** Check out [Examples/BasicEditorForm.cs](Examples/BasicEditorForm.cs) for a full Windows Forms application demonstrating all features!
-
-### Basic Setup
+The `MonacoEditorService` can automatically download Monaco Editor files on first run:
 
 ```csharp
-using MonacoEditor;
-using Microsoft.Web.WebView2.WinForms;
+await MonacoEditorService.EnsureMonacoEditorFilesAsync();
+```
 
-public class MyForm : Form
+This is already included in the example, so Monaco will be downloaded automatically.
+
+#### Option B: Manual Installation
+
+1. Download Monaco Editor from [Microsoft CDN](https://cdn.jsdelivr.net/npm/monaco-editor@latest/min/)
+2. Extract to: `{YourProjectFolder}/bin/Debug/net10.0-windows/monaco-editor/`
+3. Ensure the following structure:
+   ```
+   monaco-editor/
+   ├── min/
+   │   ├── vs/
+   │   │   ├── editor/
+   │   │   ├── base/
+   │   │   └── loader.js
+   ```
+
+### 3. Get Anthropic API Key
+
+1. Sign up at [console.anthropic.com](https://console.anthropic.com)
+2. Create an API key
+3. Keep it secure - never commit it to source control
+
+### 4. Run the Example
+
+```bash
+cd AiEditorExample
+dotnet run
+```
+
+Or open the solution in Visual Studio and run the **AiEditorExample** project.
+
+## How to Use
+
+### Basic Workflow
+
+1. **Launch the Application**
+   - The editor will initialize with sample C# code
+
+2. **Enter Your API Key**
+   - Paste your Anthropic API key in the "Anthropic API Key" field
+   - This is stored in memory only (not saved to disk)
+
+3. **Load or Write Code**
+   - Use "Load File" to open an existing file
+   - Or type/paste code directly in the editor
+
+4. **Give the AI an Instruction**
+   - Examples:
+     - "Add error handling to the Main method"
+     - "Add XML documentation comments to all methods"
+     - "Refactor this code to use async/await"
+     - "Add input validation to all public methods"
+     - "Remove all Console.WriteLine statements"
+
+5. **Send to AI**
+   - Click "Send to AI"
+   - Watch the command log to see what the AI is doing
+   - The code will update in real-time
+
+6. **Save Your Work**
+   - Use "Save File" to save the edited code
+
+### Example Instructions to Try
+
+**Add Error Handling:**
+```
+Add try-catch error handling to the Main method with proper logging
+```
+
+**Add Documentation:**
+```
+Add XML documentation comments to all public methods
+```
+
+**Code Refactoring:**
+```
+Refactor the code to use dependency injection
+```
+
+**Add Validation:**
+```
+Add null checks and input validation to all method parameters
+```
+
+**Clean Up Code:**
+```
+Remove all commented-out code and unnecessary whitespace
+```
+
+**Add Logging:**
+```
+Add logging statements at the beginning and end of each method
+```
+
+**Highlight Important Code:**
+```
+Highlight the error handling code and add bookmarks to all TODO comments
+```
+
+**Mark Review Points:**
+```
+Add bookmarks to all public methods and highlight any sections that need optimization
+```
+
+## Command Format Reference
+
+The AI responds with JSON in this format:
+
+```json
 {
-    private WebView2 webView;
-    private MonacoEditorService editorService;
-
-    public MyForm()
+  "commands": [
     {
-        // Initialize WebView2
-        webView = new WebView2 { Dock = DockStyle.Fill };
-        Controls.Add(webView);
-
-        // Initialize Monaco Editor Service
-        editorService = new MonacoEditorService(webView);
-
-        InitializeEditor();
-    }
-
-    private async void InitializeEditor()
+      "type": "insertLine",
+      "line": 5,
+      "text": "// New comment"
+    },
     {
-        string appDirectory = Application.StartupPath;
-        string initialCode = "// Start coding...\n";
-
-        await editorService.InitializeAsync(
-            appDirectory,
-            initialCode,
-            language: "csharp",
-            width: 800,
-            height: 600
-        );
-
-        // Wait for editor to be ready
-        await editorService.EditorReady;
-
-        // Now you can use the editor!
-        await editorService.SetValueAsync("Console.WriteLine(\"Hello, Monaco!\");");
+      "type": "replaceLine",
+      "line": 10,
+      "text": "int x = 5;"
+    },
+    {
+      "type": "replaceLineRange",
+      "startLine": 15,
+      "endLine": 18,
+      "text": "new code\nmore code\neven more"
+    },
+    {
+      "type": "deleteLine",
+      "line": 20
+    },
+    {
+      "type": "deleteLineRange",
+      "startLine": 25,
+      "endLine": 30
+    },
+    {
+      "type": "highlightLineRange",
+      "startLine": 5,
+      "endLine": 10
+    },
+    {
+      "type": "clearHighlight"
+    },
+    {
+      "type": "toggleBookmark",
+      "line": 15
     }
+  ]
 }
 ```
 
-## API Overview
+### Command Types
 
-### Initialization
+| Command | Parameters | Description |
+|---------|------------|-------------|
+| `insertLine` | `line`, `text` | Insert new line at position |
+| `replaceLine` | `line`, `text` | Replace single line content |
+| `replaceLineRange` | `startLine`, `endLine`, `text` | Replace multiple lines (use `\n` for line breaks) |
+| `deleteLine` | `line` | Delete single line |
+| `deleteLineRange` | `startLine`, `endLine` | Delete line range (inclusive) |
+| `highlightLineRange` | `startLine`, `endLine` | Highlight a range of lines for visual emphasis |
+| `clearHighlight` | *(none)* | Clear all highlights from the editor |
+| `toggleBookmark` | `line` | Toggle bookmark on a specific line |
 
-| Method | Description |
-|--------|-------------|
-| `InitializeAsync(appDirectory, initialCode, language, width, height)` | Initialize the editor with initial content and settings |
-| `EditorReady` | Task that completes when the editor is ready to use |
+### Important Notes
 
-### File Operations
-
-| Method | Description |
-|--------|-------------|
-| `GetAllTextAsync()` | Get all text from the editor |
-| `SetValueAsync(value)` | Set the entire editor content |
-| `SaveToFileAsync(filePath)` | Save editor content to a file |
-| `LoadFromFileAsync(filePath)` | Load file content into the editor |
-| `CountLinesAsync()` | Get the total number of lines |
-
-### Line Operations
-
-| Method | Description |
-|--------|-------------|
-| `GetLineTextAsync(lineNumber)` | Get text from a specific line |
-| `GetLineRangeAsync(startLine, endLine)` | Get text from a range of lines |
-| `ReplaceLineAsync(lineNumber, newText)` | Replace a single line |
-| `ReplaceLineRangeAsync(startLine, endLine, newText)` | Replace a range of lines |
-| `DeleteLineRangeAsync(startLine, endLine)` | Delete a range of lines |
-
-### Text Editing
-
-| Method | Description |
-|--------|-------------|
-| `InsertTextAsync(lineNumber, column, text)` | Insert text at a specific position |
-| `GetSelectedTextAsync()` | Get currently selected text |
-
-### Precise Range Operations
-
-| Method | Description |
-|--------|-------------|
-| `GetTextInRangeAsync(startLine, startColumn, endLine, endColumn)` | Get text from a specific character range |
-| `InsertTextAtRangeAsync(startLine, startColumn, endLine, endColumn, text)` | Insert text at a specific range, replacing any text in that range |
-| `DeleteRangeAsync(startLine, startColumn, endLine, endColumn)` | Delete text in a specific character range |
-| `ReplaceRangeAsync(startLine, startColumn, endLine, endColumn, newText)` | Replace text in a specific character range with new text |
-| `SelectRangeAsync(startLine, startColumn, endLine, endColumn)` | Select and highlight a specific character range |
-
-### Cursor and Position
-
-| Method | Description |
-|--------|-------------|
-| `GetPositionAsync()` | Get current cursor position (line, column) |
-| `SetCursorPositionAsync(lineNumber, column)` | Set cursor position and focus editor |
-
-### Streaming (for Real-time Updates)
-
-| Method | Description |
-|--------|-------------|
-| `BeginStreamAsync()` | Start a streaming session |
-| `StreamChunkAsync(text)` | Stream a chunk of text to the editor |
-| `EndStreamAsync()` | End the streaming session |
-
-### Visual Decorations
-
-| Method | Description |
-|--------|-------------|
-| `HighlightLineRangeAsync(startLine, endLine)` | Highlight a range of lines |
-| `ClearHighlightAsync()` | Clear all highlights |
-| `ToggleBookmarkAsync(lineNumber)` | Toggle a bookmark on a line |
-| `ClearAllDecorationsAsync()` | Clear all highlights and bookmarks |
-| `GetDecorationInfoAsync(lineNumber)` | Get decoration information for a line |
-
-## Usage Examples
-
-### Example 1: Load and Save Files
-
-```csharp
-// Load a C# file
-await editorService.LoadFromFileAsync(@"C:\MyProject\Program.cs");
-
-// Get the content
-string code = await editorService.GetAllTextAsync();
-
-// Modify and save
-await editorService.InsertTextAsync(1, 1, "// Modified by MonacoEditorService\n");
-await editorService.SaveToFileAsync(@"C:\MyProject\Program_Modified.cs");
-```
-
-### Example 2: Highlight and Navigate Code
-
-```csharp
-// Highlight lines 10-15
-await editorService.HighlightLineRangeAsync(10, 15);
-
-// Set cursor to line 12
-await editorService.SetCursorPositionAsync(12, 1);
-
-// Add a bookmark
-await editorService.ToggleBookmarkAsync(12);
-
-// Clear highlights
-await editorService.ClearHighlightAsync();
-```
-
-### Example 3: Stream AI-Generated Code
-
-Perfect for AI code generation or real-time updates:
-
-```csharp
-await editorService.BeginStreamAsync();
-
-foreach (var codeChunk in aiGeneratedChunks)
-{
-    await editorService.StreamChunkAsync(codeChunk);
-    await Task.Delay(50); // Smooth streaming effect
-}
-
-await editorService.EndStreamAsync();
-```
-
-### Example 4: Working with Selections
-
-```csharp
-// Get current cursor position
-(int line, int column) = await editorService.GetPositionAsync();
-Console.WriteLine($"Cursor at Line {line}, Column {column}");
-
-// Get selected text
-string selectedText = await editorService.GetSelectedTextAsync();
-if (!string.IsNullOrEmpty(selectedText))
-{
-    Console.WriteLine($"Selected: {selectedText}");
-}
-```
-
-### Example 5: Line Manipulation
-
-```csharp
-// Get a specific line
-string line5 = await editorService.GetLineTextAsync(5);
-
-// Get multiple lines
-string lines10to20 = await editorService.GetLineRangeAsync(10, 20);
-
-// Replace a line
-await editorService.ReplaceLineAsync(15, "// This line was replaced");
-
-// Delete lines
-await editorService.DeleteLineRangeAsync(20, 25);
-```
-
-### Example 6: Precise Range Operations
-
-Work with exact character positions for fine-grained control:
-
-```csharp
-// Get text from a specific character range (line 5 col 1 to line 7 col 30)
-string rangeText = await editorService.GetTextInRangeAsync(5, 1, 7, 30);
-Console.WriteLine($"Range text: {rangeText}");
-
-// Replace text in a precise range
-await editorService.ReplaceRangeAsync(10, 5, 10, 25, "new code here");
-
-// Delete a specific range
-await editorService.DeleteRangeAsync(15, 10, 15, 50);
-
-// Select and highlight a range
-await editorService.SelectRangeAsync(20, 1, 25, 40);
-
-// Insert text at a range (replaces existing text in range)
-await editorService.InsertTextAtRangeAsync(30, 1, 30, 1, "// Inserted text\n");
-```
-
-## Supported Languages
-
-Monaco Editor supports syntax highlighting for many languages including:
-
-- C# (`csharp`)
-- JavaScript (`javascript`)
-- TypeScript (`typescript`)
-- Python (`python`)
-- Java (`java`)
-- C++ (`cpp`)
-- HTML (`html`)
-- CSS (`css`)
-- JSON (`json`)
-- XML (`xml`)
-- And many more...
+- **Line numbers are 1-based** (first line is 1, not 0)
+- **Ranges are inclusive** (both startLine and endLine are included)
+- **Multi-line text** uses `\n` as separator in the `text` field
+- **Bottom-to-top execution** prevents line number shifts
 
 ## Architecture
 
-The service uses **WebView2** to host the Monaco Editor HTML/JavaScript environment and provides a clean C# API to interact with it. Communication happens through:
+### Project Structure
 
-- **JavaScript injection** for sending commands to the editor
-- **Web message passing** for receiving events from the editor
-- **JSON serialization** for data exchange
-
-## Thread Safety
-
-All methods are async and should be called from the UI thread. The service handles the async communication with the WebView2 control.
-
-## Cleanup
-
-Don't forget to dispose of the service:
-
-```csharp
-protected override void OnFormClosing(FormClosingEventArgs e)
-{
-    editorService?.Dispose();
-    base.OnFormClosing(e);
-}
+```
+AiEditorExample/
+├── Models/
+│   ├── EditCommand.cs              # Base command class
+│   ├── InsertLineCommand.cs
+│   ├── ReplaceLineCommand.cs
+│   ├── ReplaceLineRangeCommand.cs
+│   ├── DeleteLineCommand.cs
+│   ├── DeleteLineRangeCommand.cs
+│   └── CommandResult.cs
+├── Services/
+│   ├── CommandProcessor.cs        # Parses and executes commands
+│   └── AiPromptBuilder.cs          # Builds AI prompts
+├── AiEditorForm.cs                 # Main UI
+├── AnthropicClient.cs              # AI client
+└── [Message models...]
 ```
 
-## Examples
+### Key Components
 
-The repository contains complete, working examples:
+**CommandProcessor**
+- Parses JSON responses from AI
+- Validates command structure
+- Sorts commands bottom-to-top
+- Executes commands sequentially
 
-- **[BasicEditorForm.cs](Examples/BasicEditorForm.cs)** - A full Windows Forms application demonstrating:
-  - Editor initialization with syntax highlighting
-  - File load/save operations
-  - Line highlighting and navigation
-  - Bookmark management
-  - Cursor position handling
-  - Text insertion
+**AiPromptBuilder**
+- Formats code with line numbers
+- Builds system prompt teaching AI the command format
+- Creates message requests
 
-- **[AiEditorExample](AiEditorExample/)** - AI-powered code editor combining MonacoEditorService with Anthropic Claude:
-  - AI-assisted code editing with natural language instructions
-  - Command-based editing system (insert, replace, delete, highlight, bookmark)
-  - 8 command types for comprehensive code manipulation
-  - Bottom-to-top command processing to prevent line shift issues
-  - Real-time code modifications by AI
-  - Visual feedback with highlights and bookmarks
-  - Complete integration example with Anthropic API
-  - See [AiEditorExample/README.md](AiEditorExample/README.md) for details
+**EditCommand Classes**
+- One class per command type
+- Each implements `ExecuteAsync()` using MonacoEditorService
+- `SortPriority` enables bottom-to-top execution
 
-Each example includes detailed comments and demonstrates best practices.
+### Why Bottom-to-Top Processing?
 
-## Contributing
+When editing code by line number, changes at the beginning of the file can shift line numbers for subsequent edits:
 
-Contributions are welcome! Please feel free to submit a Pull Request. For major changes, please open an issue first to discuss what you would like to change.
+```
+Original:
+1: line one
+2: line two
+3: line three
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+If we insert at line 1 first:
+1: NEW LINE    ← inserted
+2: line one    ← shifted down!
+3: line two
+4: line three
+
+Now "line two" is at line 3, not line 2!
+```
+
+**Solution:** Execute commands from highest line number to lowest:
+
+```
+Original:
+1: line one
+2: line two
+3: line three
+
+Execute from bottom-to-top:
+1. Delete line 3
+2. Replace line 2
+3. Insert at line 1
+
+Line numbers remain valid throughout!
+```
+
+## Troubleshooting
+
+### Monaco Editor Not Loading
+
+**Problem:** White screen or "Monaco Editor not found" error
+
+**Solutions:**
+- Ensure Monaco Editor files are in the correct location
+- Check that `EnsureMonacoEditorFilesAsync()` completes successfully
+- Verify internet connection for automatic download
+- Try manual installation (see Setup Instructions)
+
+### API Errors
+
+**Problem:** "Invalid API key" or network errors
+
+**Solutions:**
+- Verify your API key is correct
+- Check that you have API credits available
+- Ensure internet connection is active
+- Check Anthropic API status page
+
+### AI Returning Invalid JSON
+
+**Problem:** "Failed to parse JSON response" error
+
+**Solutions:**
+- This is rare but can happen if the AI misunderstands the format
+- Try rewording your instruction to be more specific
+- Check the command log for the raw response
+- The system prompt is designed to prevent this, but edge cases exist
+
+### Commands Not Executing
+
+**Problem:** "0 commands executed" message
+
+**Solutions:**
+- Check if the AI determined no changes were needed
+- Verify the JSON response in the command log
+- Try a more specific instruction
+- Make sure the code actually needs the requested changes
+
+### Line Number Issues
+
+**Problem:** Commands executing on wrong lines
+
+**Solutions:**
+- This should not happen due to bottom-to-top processing
+- If it does, please report as a bug
+- Check if your code has unusual line endings (CR/LF vs LF)
+
+## Extending the Example
+
+### Add New Command Types
+
+1. Create a new class inheriting from `EditCommand`
+2. Implement `Type`, `SortPriority`, `ExecuteAsync()`, and `GetDescription()`
+3. Add to `CommandProcessor.ParseSingleCommand()` switch statement
+4. Update the system prompt in `AiPromptBuilder`
+
+### Add Syntax Highlighting
+
+Monaco Editor supports many languages. To change the language:
+
+```csharp
+// In AiEditorForm.cs, after InitializeAsync()
+await _editorService.ExecuteScriptAsync(@"
+    monaco.editor.setModelLanguage(editor.getModel(), 'python');
+");
+```
+
+Supported languages: `csharp`, `javascript`, `typescript`, `python`, `java`, `cpp`, `json`, `xml`, `html`, `css`, and many more.
+
+### Add Confirmation Dialog
+
+Show commands before executing:
+
+```csharp
+// In btnSendToAi_Click, before ProcessCommandsAsync
+var preview = string.Join("\n", commands.Select(c => c.GetDescription()));
+var confirm = MessageBox.Show($"Execute these commands?\n\n{preview}",
+    "Confirm", MessageBoxButtons.YesNo);
+if (confirm != DialogResult.Yes) return;
+```
+
+### Add Undo/Redo
+
+Store editor state before AI edits:
+
+```csharp
+private string _beforeEdit = "";
+
+// Before ProcessCommandsAsync:
+_beforeEdit = await _editorService.GetAllTextAsync();
+
+// Add Undo button:
+await _editorService.SetValueAsync(_beforeEdit);
+```
+
+## Performance Tips
+
+- **Large Files**: For files > 1000 lines, consider showing a progress indicator
+- **Multiple Edits**: The AI can return multiple commands in one response for efficiency
+- **Token Usage**: Longer code = more input tokens. Monitor usage in the command log
+- **Model Selection**: Use Claude Haiku for simple edits, Sonnet for complex refactoring
+
+## Security Notes
+
+- **API Key Storage**: This example stores the API key in memory only (not persisted)
+- **For Production**: Use secure credential storage (Windows Credential Manager, Azure Key Vault, etc.)
+- **Code Validation**: Consider adding validation before executing AI commands
+- **Backup**: Always save your work before running AI edits on important code
 
 ## License
 
-This project is licensed under the Apache License 2.0 - see the [LICENSE.txt](LICENSE.txt) file for details.
+This project is licensed under the Apache License 2.0 - see the [LICENSE.txt](../LICENSE.txt) file for details.
 
-## Acknowledgments
+## Contributing
 
-- **Monaco Editor** - Microsoft's excellent code editor
-- **WebView2** - For enabling modern web content in Windows applications
+See [CONTRIBUTING.md](../CONTRIBUTING.md) for guidelines on contributing to this project.
 
 ## Support
 
-If you encounter any issues or have questions:
+For issues, questions, or suggestions:
+1. Check this README and the main project README
+2. Review the [IMPLEMENTATION_PLAN.md](../IMPLEMENTATION_PLAN.md) for architecture details
+3. Open an issue on GitHub
 
-- Open an [Issue](https://github.com/johnbrodowski/Monaco-Editor-Service/issues)
-- Check existing issues for solutions
-- Contribute improvements via Pull Requests
+## Credits
+
+- **Monaco Editor**: Microsoft ([monaco-editor](https://microsoft.github.io/monaco-editor/))
+- **Anthropic Claude**: Anthropic ([anthropic.com](https://www.anthropic.com))
+- **MonacoEditorService**: John Brodowski
+
+## Example Output
+
+```
+AI Response (247 tokens):
+{
+  "commands": [
+    {"type": "insertLine", "line": 8, "text": "        try"},
+    {"type": "insertLine", "line": 9, "text": "        {"},
+    {"type": "insertLine", "line": 11, "text": "        }"},
+    {"type": "insertLine", "line": 12, "text": "        catch (Exception ex)"},
+    {"type": "insertLine", "line": 13, "text": "        {"},
+    {"type": "insertLine", "line": 14, "text": "            Console.WriteLine($\"Error: {ex.Message}\");"},
+    {"type": "insertLine", "line": 15, "text": "        }"}
+  ]
+}
+
+✓ Successfully executed 7 command(s)
+  - Insert line 15: "        }"
+  - Insert line 14: "            Console.WriteLine($\"Error: {ex.Message}\");"
+  - Insert line 13: "        {"
+  - Insert line 12: "        catch (Exception ex)"
+  - Insert line 11: "        }"
+  - Insert line 9: "        {"
+  - Insert line 8: "        try"
+```
 
 ---
 
-**Made with ❤️ for the .NET and Monaco Editor communities**
+**Happy AI-powered coding!** 🚀
