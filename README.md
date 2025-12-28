@@ -1,3 +1,6 @@
+# About this code
+This example was extracted from AGPA — my fully autonomous general-purpose agent (closed-source, ~150k LOC).
+
 # Monaco Editor For AI
 
 Seamless Monaco Editor (VS Code's core) integration for .NET AI/agent applications.
