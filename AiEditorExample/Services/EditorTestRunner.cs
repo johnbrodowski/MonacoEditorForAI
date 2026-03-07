@@ -94,16 +94,10 @@ public class EditorTestRunner
         Func<MonacoEditorService, Task> applyEdits,
         string expected)
     {
+        TestCaseResult result;
         try
         {
             var editor = await manager.CreateEditorAsync(testName, initialContent ?? "", "plaintext");
-
-            // If initialContent was supplied separately (e.g., SetValue test), apply it now
-            if (initialContent == null)
-            {
-                // applyEdits will set content itself
-            }
-
             await applyEdits(editor);
 
             var actual = await editor.GetAllTextAsync();
@@ -111,12 +105,17 @@ public class EditorTestRunner
             var normalizedExpected = Normalize(expected);
             var passed = normalizedActual == normalizedExpected;
 
-            return new TestCaseResult(testName, passed, normalizedExpected, normalizedActual);
+            result = new TestCaseResult(testName, passed, normalizedExpected, normalizedActual);
         }
         catch (Exception ex)
         {
-            return new TestCaseResult(testName, false, expected, $"EXCEPTION: {ex.Message}");
+            result = new TestCaseResult(testName, false, expected, $"EXCEPTION: {ex.Message}");
         }
+        finally
+        {
+            manager.RemoveEditor(testName);
+        }
+        return result;
     }
 
     private async Task<TestCaseResult> RunIsolationTestAsync(MonacoEditorManager manager, string testName)
@@ -126,6 +125,7 @@ public class EditorTestRunner
         const string expectedA = "AAA";
         const string expectedB = "bbb"; // B must be unchanged
 
+        TestCaseResult result;
         try
         {
             var editorA = await manager.CreateEditorAsync($"{testName}-A", initialA, "plaintext");
@@ -141,12 +141,18 @@ public class EditorTestRunner
             var actual = $"A={actualA}, B={actualB}";
             var expected = $"A={expectedA}, B={expectedB}";
 
-            return new TestCaseResult(testName, passed, expected, actual);
+            result = new TestCaseResult(testName, passed, expected, actual);
         }
         catch (Exception ex)
         {
-            return new TestCaseResult(testName, false, $"A={expectedA}, B={expectedB}", $"EXCEPTION: {ex.Message}");
+            result = new TestCaseResult(testName, false, $"A={expectedA}, B={expectedB}", $"EXCEPTION: {ex.Message}");
         }
+        finally
+        {
+            manager.RemoveEditor($"{testName}-A");
+            manager.RemoveEditor($"{testName}-B");
+        }
+        return result;
     }
 
     /// <summary>
