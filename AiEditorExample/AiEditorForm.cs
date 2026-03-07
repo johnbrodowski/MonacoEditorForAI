@@ -101,6 +101,35 @@ namespace Example
         btnRunTests.Enabled = true;
     }
 
+    private async void btnWatchTest_Click(object sender, EventArgs e)
+    {
+        if (_editorManager == null) return;
+
+        btnWatchTest.Enabled = false;
+        SetStatus("Running live edit test...");
+        AppendCommandLog("=== Live Edit Test ===");
+
+        var runner = new EditorTestRunner();
+        var results = await runner.RunWatchableTestAsync(_editorManager);
+
+        int passed = results.Count(r => r.Passed);
+
+        foreach (var r in results)
+        {
+            AppendCommandLog($"{(r.Passed ? "✓" : "✗")} {r.Name}");
+            if (!r.Passed)
+            {
+                AppendCommandLog($"    Expected: {r.Expected}");
+                AppendCommandLog($"    Actual:   {r.Actual}");
+            }
+        }
+
+        AppendCommandLog($"=== {passed}/{results.Count} passed ===");
+        AppendCommandLog("");
+        SetStatus($"Live test: {passed} passed, {results.Count - passed} failed");
+        btnWatchTest.Enabled = true;
+    }
+
     private async void btnLoadFile_Click(object sender, EventArgs e)
     {
         var editor = _editorManager?.GetActiveEditor();

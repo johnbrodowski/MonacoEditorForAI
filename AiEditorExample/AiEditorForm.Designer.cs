@@ -10,6 +10,7 @@ namespace AiEditorExample
         private Button btnLoadFile;
         private Button btnSaveFile;
         private Button btnRunTests;
+        private Button btnWatchTest;
         private GroupBox groupAi;
         private Label lblApiKey;
         private TextBox txtApiKey;
@@ -31,6 +32,7 @@ namespace AiEditorExample
             this.btnLoadFile = new System.Windows.Forms.Button();
             this.btnSaveFile = new System.Windows.Forms.Button();
             this.btnRunTests = new System.Windows.Forms.Button();
+            this.btnWatchTest = new System.Windows.Forms.Button();
             this.groupAi = new System.Windows.Forms.GroupBox();
             this.lblApiKey = new System.Windows.Forms.Label();
             this.txtApiKey = new System.Windows.Forms.TextBox();
@@ -73,6 +75,7 @@ namespace AiEditorExample
             //
             // groupFile
             //
+            this.groupFile.Controls.Add(this.btnWatchTest);
             this.groupFile.Controls.Add(this.btnRunTests);
             this.groupFile.Controls.Add(this.btnSaveFile);
             this.groupFile.Controls.Add(this.btnLoadFile);
@@ -82,7 +85,7 @@ namespace AiEditorExample
             this.groupFile.Location = new System.Drawing.Point(10, 10);
             this.groupFile.Name = "groupFile";
             this.groupFile.Padding = new System.Windows.Forms.Padding(8);
-            this.groupFile.Size = new System.Drawing.Size(380, 150);
+            this.groupFile.Size = new System.Drawing.Size(380, 180);
             this.groupFile.TabIndex = 0;
             this.groupFile.TabStop = false;
             this.groupFile.Text = "File Operations";
@@ -142,6 +145,20 @@ namespace AiEditorExample
             this.btnRunTests.Text = "Run Editor Tests";
             this.btnRunTests.UseVisualStyleBackColor = false;
             this.btnRunTests.Click += new System.EventHandler(this.btnRunTests_Click);
+            //
+            // btnWatchTest
+            //
+            this.btnWatchTest.BackColor = System.Drawing.Color.FromArgb(100, 0, 160);
+            this.btnWatchTest.FlatAppearance.BorderSize = 0;
+            this.btnWatchTest.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnWatchTest.ForeColor = System.Drawing.Color.White;
+            this.btnWatchTest.Location = new System.Drawing.Point(11, 144);
+            this.btnWatchTest.Name = "btnWatchTest";
+            this.btnWatchTest.Size = new System.Drawing.Size(358, 23);
+            this.btnWatchTest.TabIndex = 4;
+            this.btnWatchTest.Text = "Watch Live Edit Test";
+            this.btnWatchTest.UseVisualStyleBackColor = false;
+            this.btnWatchTest.Click += new System.EventHandler(this.btnWatchTest_Click);
             //
             // groupAi
             //

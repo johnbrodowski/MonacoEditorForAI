@@ -150,6 +150,73 @@ public class EditorTestRunner
     }
 
     /// <summary>
+    /// Runs all edit operations sequentially on a single editor so you can watch each
+    /// change happen. A short delay is inserted between steps for visibility.
+    /// Returns one result per step.
+    /// </summary>
+    public async Task<List<TestCaseResult>> RunWatchableTestAsync(
+        MonacoEditorManager manager,
+        TimeSpan? stepDelay = null)
+    {
+        var delay = stepDelay ?? TimeSpan.FromMilliseconds(800);
+        var results = new List<TestCaseResult>();
+
+        _runCounter++;
+        var suffix = _runCounter > 1 ? $" ({_runCounter})" : "";
+        var tabName = $"⚗ Live{suffix}";
+
+        var editor = await manager.CreateEditorAsync(tabName, "", "plaintext");
+
+        async Task<TestCaseResult> Step(string name, Func<Task> action, string expected)
+        {
+            try
+            {
+                await action();
+                await Task.Delay(delay);
+                var actual = Normalize(await editor.GetAllTextAsync());
+                var exp = Normalize(expected);
+                return new TestCaseResult(name, actual == exp, exp, actual);
+            }
+            catch (Exception ex)
+            {
+                return new TestCaseResult(name, false, expected, $"EXCEPTION: {ex.Message}");
+            }
+        }
+
+        // Step 1 – SetValue
+        results.Add(await Step("SetValue",
+            () => editor.SetValueAsync("line1\nline2\nline3\nline4"),
+            "line1\nline2\nline3\nline4"));
+
+        // Step 2 – InsertLine: insert before line 2
+        results.Add(await Step("InsertLine",
+            () => new InsertLineCommand { Line = 2, Text = "inserted" }.ExecuteAsync(editor),
+            "line1\ninserted\nline2\nline3\nline4"));
+
+        // Step 3 – ReplaceLine: replace line 3 (currently "line2")
+        results.Add(await Step("ReplaceLine",
+            () => new ReplaceLineCommand { Line = 3, Text = "replaced" }.ExecuteAsync(editor),
+            "line1\ninserted\nreplaced\nline3\nline4"));
+
+        // Step 4 – ReplaceRange: collapse lines 2-3 into one
+        results.Add(await Step("ReplaceRange",
+            () => new ReplaceLineRangeCommand { StartLine = 2, EndLine = 3, Text = "newline" }.ExecuteAsync(editor),
+            "line1\nnewline\nline3\nline4"));
+
+        // Step 5 – DeleteLine: remove line 4
+        results.Add(await Step("DeleteLine",
+            () => new DeleteLineCommand { Line = 4 }.ExecuteAsync(editor),
+            "line1\nnewline\nline3"));
+
+        // Step 6 – DeleteRange: remove lines 2-3
+        results.Add(await Step("DeleteRange",
+            () => new DeleteLineRangeCommand { StartLine = 2, EndLine = 3 }.ExecuteAsync(editor),
+            "line1"));
+
+        return results;
+    }
+
+    /// <summary>
     /// Normalizes text for comparison: strips \r, trims trailing whitespace per line.
     /// </summary>
     private static string Normalize(string text)
