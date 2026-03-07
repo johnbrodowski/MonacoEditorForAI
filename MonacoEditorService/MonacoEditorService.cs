@@ -570,9 +570,10 @@ private string EditorHtmlTemplate2 = @"<!DOCTYPE html>
             await _editorReadyCompletionSource.Task;
 
             var script = $@"
+                var endLineLen = editor.getModel().getLineLength({endLine});
                 editor.executeEdits('replace-range', [
                     {{
-                        range: new monaco.Range({startLine}, 1, {endLine}, 1),
+                        range: new monaco.Range({startLine}, 1, {endLine}, endLineLen + 1),
                         text: {JsonSerializer.Serialize(newText)}
                     }}
                 ]);
