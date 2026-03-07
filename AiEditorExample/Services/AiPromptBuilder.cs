@@ -1,7 +1,7 @@
 using System.Text;
 using MonacoEditor;
-
 using AiEditorExample.Models;
+
 namespace AiEditorExample.Services;
 
 /// <summary>
@@ -12,21 +12,16 @@ public class AiPromptBuilder
     /// <summary>
     /// Get code from editor with line numbers
     /// </summary>
-    public async Task<string> GetCodeWithLineNumbersAsync(MonacoEditor.MonacoEditorService editor)
+    public async Task<string> GetCodeWithLineNumbersAsync(MonacoEditorService editor)
     {
         var allText = await editor.GetAllTextAsync();
         if (string.IsNullOrEmpty(allText))
-        {
             return string.Empty;
-        }
 
         var lines = allText.Split('\n');
         var sb = new StringBuilder();
-
         for (int i = 0; i < lines.Length; i++)
-        {
             sb.AppendLine($"{i + 1}: {lines[i]}");
-        }
 
         return sb.ToString();
     }
@@ -37,6 +32,11 @@ public class AiPromptBuilder
     public string BuildSystemPrompt()
     {
         return @"You are an AI code editor assistant. You can edit code by responding with JSON commands.
+
+MULTI-EDITOR CONTEXT:
+When multiple editors are open, you will always receive the code from ONE specific editor.
+The editor name is stated at the top of the user message. Your commands always apply to THAT editor only.
+Do not reference or attempt to target other editors — they are shown for context only.
 
 The user will provide code with line numbers like this:
 1: using System;
@@ -55,7 +55,8 @@ You must respond with ONLY valid JSON in this exact format:
     {""type"": ""deleteLineRange"", ""startLine"": 25, ""endLine"": 30},
     {""type"": ""highlightLineRange"", ""startLine"": 5, ""endLine"": 10},
     {""type"": ""clearHighlight""},
-    {""type"": ""toggleBookmark"", ""line"": 15}
+    {""type"": ""toggleBookmark"", ""line"": 15},
+    {""type"": ""listEditors""}
   ]
 }
 
@@ -68,6 +69,7 @@ Available commands:
 - highlightLineRange: Highlight a range of lines for visual emphasis (startLine, endLine)
 - clearHighlight: Clear all highlights (no parameters)
 - toggleBookmark: Toggle bookmark on a specific line (line number)
+- listEditors: Query the names of all currently open editor tabs (no parameters); the result appears in the command log
 
 CRITICAL RULES:
 1. Line numbers are 1-based (first line is 1, not 0)
@@ -78,6 +80,7 @@ CRITICAL RULES:
 6. If no changes are needed, return: {""commands"": []}
 7. Do not include the line numbers in the ""text"" field
 8. Preserve the exact indentation and formatting of the code
+9. Use listEditors to discover which editor tabs are open when you need to reference or target one by name
 
 Example valid responses:
 
@@ -92,27 +95,53 @@ No changes:
     }
 
     /// <summary>
-    /// Build a complete message request for the AI
+    /// Build a complete message request for the AI, including multi-editor context.
     /// </summary>
-    public MessageRequest BuildRequest(string codeWithLineNumbers, string userInstruction, string apiKey)
+    /// <param name="codeWithLineNumbers">The code content with line numbers to edit.</param>
+    /// <param name="userInstruction">The instruction from the user.</param>
+    /// <param name="apiKey">The Anthropic API key.</param>
+    /// <param name="editorName">The name of the editor being edited.</param>
+    /// <param name="allEditorNames">All open editor names, for context.</param>
+    public MessageRequest BuildRequest(
+        string codeWithLineNumbers,
+        string userInstruction,
+        string apiKey,
+        string editorName = "Editor",
+        IEnumerable<string>? allEditorNames = null)
     {
-        var request = new MessageRequest
+        return new MessageRequest
         {
             Model = ClaudeModels.Claude45Sonnet,
             MaxTokens = 4096,
             System = BuildSystemPrompt(),
             Messages = new List<Message>
             {
-                Message.CreateUserMessage($@"Here is the code:
-
-{codeWithLineNumbers}
-
-User instruction: {userInstruction}
-
-Respond with JSON commands only.")
+                Message.CreateUserMessage(BuildUserMessage(codeWithLineNumbers, userInstruction, editorName, allEditorNames))
             }
         };
+    }
 
-        return request;
+    private string BuildUserMessage(
+        string codeWithLineNumbers,
+        string userInstruction,
+        string editorName,
+        IEnumerable<string>? allEditorNames)
+    {
+        var sb = new StringBuilder();
+        sb.AppendLine($"Editing: {editorName}");
+
+        var others = allEditorNames?.Where(n => n != editorName).ToList();
+        if (others is { Count: > 0 })
+            sb.AppendLine($"Other open editors (context only, do not target): {string.Join(", ", others)}");
+
+        sb.AppendLine();
+        sb.AppendLine($"Here is the code in [{editorName}]:");
+        sb.AppendLine();
+        sb.AppendLine(codeWithLineNumbers);
+        sb.AppendLine($"User instruction: {userInstruction}");
+        sb.AppendLine();
+        sb.Append("Respond with JSON commands only.");
+
+        return sb.ToString();
     }
 }

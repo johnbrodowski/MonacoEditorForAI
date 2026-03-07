@@ -305,8 +305,9 @@ private string EditorHtmlTemplate2 = @"<!DOCTYPE html>
         /// <param name="language">The programming language for syntax highlighting (e.g., "csharp", "javascript", "python").</param>
         /// <param name="width">The width of the editor in pixels. Default is 800.</param>
         /// <param name="height">The height of the editor in pixels. Default is 600.</param>
+        /// <param name="editorId">A unique identifier used to generate a distinct HTML file for this editor instance. Defaults to "default".</param>
         /// <returns>A task representing the asynchronous initialization operation.</returns>
-        public async Task InitializeAsync(string appDirectory, string initialCode, string language, int width = 800, int height = 600)
+        public async Task InitializeAsync(string appDirectory, string initialCode, string language, int width = 800, int height = 600, string editorId = "default")
         {
             // Ensure Monaco Editor files are present (download if needed)
             await EnsureMonacoEditorFilesAsync(appDirectory);
@@ -319,7 +320,7 @@ private string EditorHtmlTemplate2 = @"<!DOCTYPE html>
                 .Replace("<WIDTH>", width.ToString())
                 .Replace("<HEIGHT>", height.ToString());
 
-            var htmlPath = Path.Combine(appDirectory, "editor.html");
+            var htmlPath = Path.Combine(appDirectory, $"editor_{editorId}.html");
 
             File.WriteAllText(htmlPath, finalHtml);
 
@@ -569,9 +570,10 @@ private string EditorHtmlTemplate2 = @"<!DOCTYPE html>
             await _editorReadyCompletionSource.Task;
 
             var script = $@"
+                var endLineLen = editor.getModel().getLineLength({endLine});
                 editor.executeEdits('replace-range', [
                     {{
-                        range: new monaco.Range({startLine}, 1, {endLine}, 1),
+                        range: new monaco.Range({startLine}, 1, {endLine}, endLineLen + 1),
                         text: {JsonSerializer.Serialize(newText)}
                     }}
                 ]);
