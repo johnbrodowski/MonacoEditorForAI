@@ -1,13 +1,12 @@
-using Microsoft.Web.WebView2.WinForms;
-
 namespace AiEditorExample
 {
     partial class AiEditorForm
     {
         private System.ComponentModel.IContainer components = null;
-        private WebView2 webView;
+        private System.Windows.Forms.TabControl tabEditors;
         private Panel panelSidebar;
         private GroupBox groupFile;
+        private Button btnNewEditor;
         private Button btnLoadFile;
         private Button btnSaveFile;
         private GroupBox groupAi;
@@ -24,9 +23,10 @@ namespace AiEditorExample
 
         private void InitializeComponent()
         {
-            this.webView = new Microsoft.Web.WebView2.WinForms.WebView2();
+            this.tabEditors = new System.Windows.Forms.TabControl();
             this.panelSidebar = new System.Windows.Forms.Panel();
             this.groupFile = new System.Windows.Forms.GroupBox();
+            this.btnNewEditor = new System.Windows.Forms.Button();
             this.btnLoadFile = new System.Windows.Forms.Button();
             this.btnSaveFile = new System.Windows.Forms.Button();
             this.groupAi = new System.Windows.Forms.GroupBox();
@@ -40,7 +40,6 @@ namespace AiEditorExample
             this.btnClearLog = new System.Windows.Forms.Button();
             this.statusStrip = new System.Windows.Forms.StatusStrip();
             this.lblStatus = new System.Windows.Forms.ToolStripStatusLabel();
-            ((System.ComponentModel.ISupportInitialize)(this.webView)).BeginInit();
             this.panelSidebar.SuspendLayout();
             this.groupFile.SuspendLayout();
             this.groupAi.SuspendLayout();
@@ -48,16 +47,14 @@ namespace AiEditorExample
             this.statusStrip.SuspendLayout();
             this.SuspendLayout();
             //
-            // webView
+            // tabEditors
             //
-            this.webView.CreationProperties = null;
-            this.webView.DefaultBackgroundColor = System.Drawing.Color.White;
-            this.webView.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.webView.Location = new System.Drawing.Point(0, 0);
-            this.webView.Name = "webView";
-            this.webView.Size = new System.Drawing.Size(784, 559);
-            this.webView.TabIndex = 0;
-            this.webView.ZoomFactor = 1D;
+            this.tabEditors.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.tabEditors.Location = new System.Drawing.Point(0, 0);
+            this.tabEditors.Name = "tabEditors";
+            this.tabEditors.SelectedIndex = 0;
+            this.tabEditors.Size = new System.Drawing.Size(784, 559);
+            this.tabEditors.TabIndex = 0;
             //
             // panelSidebar
             //
@@ -76,15 +73,30 @@ namespace AiEditorExample
             //
             this.groupFile.Controls.Add(this.btnSaveFile);
             this.groupFile.Controls.Add(this.btnLoadFile);
+            this.groupFile.Controls.Add(this.btnNewEditor);
             this.groupFile.Dock = System.Windows.Forms.DockStyle.Top;
             this.groupFile.ForeColor = System.Drawing.Color.White;
             this.groupFile.Location = new System.Drawing.Point(10, 10);
             this.groupFile.Name = "groupFile";
             this.groupFile.Padding = new System.Windows.Forms.Padding(8);
-            this.groupFile.Size = new System.Drawing.Size(380, 90);
+            this.groupFile.Size = new System.Drawing.Size(380, 120);
             this.groupFile.TabIndex = 0;
             this.groupFile.TabStop = false;
             this.groupFile.Text = "File Operations";
+            //
+            // btnNewEditor
+            //
+            this.btnNewEditor.BackColor = System.Drawing.Color.FromArgb(16, 124, 16);
+            this.btnNewEditor.FlatAppearance.BorderSize = 0;
+            this.btnNewEditor.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnNewEditor.ForeColor = System.Drawing.Color.White;
+            this.btnNewEditor.Location = new System.Drawing.Point(11, 27);
+            this.btnNewEditor.Name = "btnNewEditor";
+            this.btnNewEditor.Size = new System.Drawing.Size(358, 23);
+            this.btnNewEditor.TabIndex = 0;
+            this.btnNewEditor.Text = "+ New Editor";
+            this.btnNewEditor.UseVisualStyleBackColor = false;
+            this.btnNewEditor.Click += new System.EventHandler(this.btnNewEditor_Click);
             //
             // btnLoadFile
             //
@@ -92,11 +104,11 @@ namespace AiEditorExample
             this.btnLoadFile.FlatAppearance.BorderSize = 0;
             this.btnLoadFile.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnLoadFile.ForeColor = System.Drawing.Color.White;
-            this.btnLoadFile.Location = new System.Drawing.Point(11, 27);
+            this.btnLoadFile.Location = new System.Drawing.Point(11, 57);
             this.btnLoadFile.Name = "btnLoadFile";
             this.btnLoadFile.Size = new System.Drawing.Size(358, 23);
-            this.btnLoadFile.TabIndex = 0;
-            this.btnLoadFile.Text = "Load File";
+            this.btnLoadFile.TabIndex = 1;
+            this.btnLoadFile.Text = "Load File into Active Editor";
             this.btnLoadFile.UseVisualStyleBackColor = false;
             this.btnLoadFile.Click += new System.EventHandler(this.btnLoadFile_Click);
             //
@@ -106,11 +118,11 @@ namespace AiEditorExample
             this.btnSaveFile.FlatAppearance.BorderSize = 0;
             this.btnSaveFile.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnSaveFile.ForeColor = System.Drawing.Color.White;
-            this.btnSaveFile.Location = new System.Drawing.Point(11, 56);
+            this.btnSaveFile.Location = new System.Drawing.Point(11, 86);
             this.btnSaveFile.Name = "btnSaveFile";
             this.btnSaveFile.Size = new System.Drawing.Size(358, 23);
-            this.btnSaveFile.TabIndex = 1;
-            this.btnSaveFile.Text = "Save File";
+            this.btnSaveFile.TabIndex = 2;
+            this.btnSaveFile.Text = "Save Active Editor to File";
             this.btnSaveFile.UseVisualStyleBackColor = false;
             this.btnSaveFile.Click += new System.EventHandler(this.btnSaveFile_Click);
             //
@@ -123,7 +135,7 @@ namespace AiEditorExample
             this.groupAi.Controls.Add(this.lblApiKey);
             this.groupAi.Dock = System.Windows.Forms.DockStyle.Top;
             this.groupAi.ForeColor = System.Drawing.Color.White;
-            this.groupAi.Location = new System.Drawing.Point(10, 100);
+            this.groupAi.Location = new System.Drawing.Point(10, 130);
             this.groupAi.Name = "groupAi";
             this.groupAi.Padding = new System.Windows.Forms.Padding(8);
             this.groupAi.Size = new System.Drawing.Size(380, 240);
@@ -178,7 +190,7 @@ namespace AiEditorExample
             this.btnSendToAi.Name = "btnSendToAi";
             this.btnSendToAi.Size = new System.Drawing.Size(358, 30);
             this.btnSendToAi.TabIndex = 4;
-            this.btnSendToAi.Text = "Send to AI";
+            this.btnSendToAi.Text = "Send Active Editor to AI";
             this.btnSendToAi.UseVisualStyleBackColor = false;
             this.btnSendToAi.Click += new System.EventHandler(this.btnSendToAi_Click);
             //
@@ -188,10 +200,10 @@ namespace AiEditorExample
             this.groupLog.Controls.Add(this.txtCommandLog);
             this.groupLog.Dock = System.Windows.Forms.DockStyle.Fill;
             this.groupLog.ForeColor = System.Drawing.Color.White;
-            this.groupLog.Location = new System.Drawing.Point(10, 340);
+            this.groupLog.Location = new System.Drawing.Point(10, 370);
             this.groupLog.Name = "groupLog";
             this.groupLog.Padding = new System.Windows.Forms.Padding(8);
-            this.groupLog.Size = new System.Drawing.Size(380, 219);
+            this.groupLog.Size = new System.Drawing.Size(380, 189);
             this.groupLog.TabIndex = 2;
             this.groupLog.TabStop = false;
             this.groupLog.Text = "Command Log";
@@ -207,7 +219,7 @@ namespace AiEditorExample
             this.txtCommandLog.Name = "txtCommandLog";
             this.txtCommandLog.ReadOnly = true;
             this.txtCommandLog.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.txtCommandLog.Size = new System.Drawing.Size(364, 158);
+            this.txtCommandLog.Size = new System.Drawing.Size(364, 128);
             this.txtCommandLog.TabIndex = 0;
             //
             // btnClearLog
@@ -217,7 +229,7 @@ namespace AiEditorExample
             this.btnClearLog.FlatAppearance.BorderSize = 0;
             this.btnClearLog.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnClearLog.ForeColor = System.Drawing.Color.White;
-            this.btnClearLog.Location = new System.Drawing.Point(8, 182);
+            this.btnClearLog.Location = new System.Drawing.Point(8, 152);
             this.btnClearLog.Name = "btnClearLog";
             this.btnClearLog.Size = new System.Drawing.Size(364, 29);
             this.btnClearLog.TabIndex = 1;
@@ -246,14 +258,13 @@ namespace AiEditorExample
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1184, 581);
-            this.Controls.Add(this.webView);
+            this.Controls.Add(this.tabEditors);
             this.Controls.Add(this.panelSidebar);
             this.Controls.Add(this.statusStrip);
             this.Name = "AiEditorForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "AI-Powered Monaco Editor";
             this.Load += new System.EventHandler(this.AiEditorForm_Load);
-            ((System.ComponentModel.ISupportInitialize)(this.webView)).EndInit();
             this.panelSidebar.ResumeLayout(false);
             this.groupFile.ResumeLayout(false);
             this.groupAi.ResumeLayout(false);

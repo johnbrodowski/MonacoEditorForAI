@@ -1,4 +1,3 @@
-using System.Text.Json;
 using AiEditorExample.Models;
 using AiEditorExample.Services;
 using MonacoEditor;
@@ -6,11 +5,11 @@ using MonacoEditor;
 namespace AiEditorExample;
 
 /// <summary>
-/// Main form for AI-powered code editing with Monaco Editor
+/// Main form for AI-powered code editing with multiple Monaco Editor instances.
 /// </summary>
 public partial class AiEditorForm : Form
 {
-    private MonacoEditor.MonacoEditorService? _editorService;
+    private MonacoEditorManager? _editorManager;
     private AnthropicClient? _aiClient;
     private readonly CommandProcessor _commandProcessor;
     private readonly AiPromptBuilder _promptBuilder;
@@ -28,10 +27,8 @@ public partial class AiEditorForm : Form
         {
             SetStatus("Initializing Monaco Editor...");
 
-            // Initialize Monaco Editor Service
-            _editorService = new MonacoEditor.MonacoEditorService(webView);
+            _editorManager = new MonacoEditorManager(tabEditors, Application.StartupPath);
 
-            string appDirectory = Application.StartupPath;
             string initialCode = @"using System;
 
 namespace Example
@@ -45,7 +42,7 @@ namespace Example
     }
 }";
 
-            await _editorService.InitializeAsync(appDirectory, initialCode, "csharp");
+            await _editorManager.CreateEditorAsync("Editor 1", initialCode, "csharp");
 
             SetStatus("Ready");
             btnSendToAi.Enabled = true;
@@ -57,9 +54,28 @@ namespace Example
         }
     }
 
+    private async void btnNewEditor_Click(object sender, EventArgs e)
+    {
+        if (_editorManager == null) return;
+
+        try
+        {
+            var name = $"Editor {_editorManager.Count + 1}";
+            SetStatus($"Creating {name}...");
+            await _editorManager.CreateEditorAsync(name, "", "plaintext");
+            SetStatus($"{name} ready");
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Error creating editor: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            SetStatus("Error");
+        }
+    }
+
     private async void btnLoadFile_Click(object sender, EventArgs e)
     {
-        if (_editorService == null) return;
+        var editor = _editorManager?.GetActiveEditor();
+        if (editor == null) return;
 
         using var openFileDialog = new OpenFileDialog
         {
@@ -72,7 +88,7 @@ namespace Example
             try
             {
                 SetStatus("Loading file...");
-                await _editorService.LoadFromFileAsync(openFileDialog.FileName);
+                await editor.LoadFromFileAsync(openFileDialog.FileName);
                 SetStatus($"Loaded: {Path.GetFileName(openFileDialog.FileName)}");
             }
             catch (Exception ex)
@@ -85,7 +101,8 @@ namespace Example
 
     private async void btnSaveFile_Click(object sender, EventArgs e)
     {
-        if (_editorService == null) return;
+        var editor = _editorManager?.GetActiveEditor();
+        if (editor == null) return;
 
         using var saveFileDialog = new SaveFileDialog
         {
@@ -98,7 +115,7 @@ namespace Example
             try
             {
                 SetStatus("Saving file...");
-                await _editorService.SaveToFileAsync(saveFileDialog.FileName);
+                await editor.SaveToFileAsync(saveFileDialog.FileName);
                 SetStatus($"Saved: {Path.GetFileName(saveFileDialog.FileName)}");
             }
             catch (Exception ex)
@@ -111,7 +128,8 @@ namespace Example
 
     private async void btnSendToAi_Click(object sender, EventArgs e)
     {
-        if (_editorService == null) return;
+        var editor = _editorManager?.GetActiveEditor();
+        if (editor == null) return;
 
         // Validate API key
         var apiKey = txtApiKey.Text.Trim();
@@ -134,10 +152,11 @@ namespace Example
         try
         {
             btnSendToAi.Enabled = false;
-            SetStatus("Getting code with line numbers...");
+            var editorName = _editorManager!.GetActiveEditorName() ?? "Active Editor";
+            SetStatus($"Getting code from {editorName}...");
 
-            // Get code with line numbers
-            var codeWithLineNumbers = await _promptBuilder.GetCodeWithLineNumbersAsync(_editorService);
+            // Get code with line numbers from the active editor
+            var codeWithLineNumbers = await _promptBuilder.GetCodeWithLineNumbersAsync(editor);
 
             SetStatus("Sending request to AI...");
 
@@ -158,12 +177,12 @@ namespace Example
             SetStatus("Processing AI response...");
 
             // Log the raw response for debugging
-            AppendCommandLog($"AI Response ({response.Usage.OutputTokens} tokens):");
+            AppendCommandLog($"[{editorName}] AI Response ({response.Usage.OutputTokens} tokens):");
             AppendCommandLog(responseText);
             AppendCommandLog("");
 
-            // Process commands
-            var result = await _commandProcessor.ProcessCommandsAsync(responseText, _editorService);
+            // Process commands against the active editor
+            var result = await _commandProcessor.ProcessCommandsAsync(responseText, editor);
 
             // Display results
             if (result.Success)
@@ -182,7 +201,7 @@ namespace Example
                 {
                     AppendCommandLog($"  ERROR: {error}");
                 }
-                SetStatus($"Completed with errors");
+                SetStatus("Completed with errors");
             }
 
             AppendCommandLog("");
@@ -228,6 +247,7 @@ namespace Example
         {
             components?.Dispose();
             _aiClient?.Dispose();
+            _editorManager?.Dispose();
         }
         base.Dispose(disposing);
     }
