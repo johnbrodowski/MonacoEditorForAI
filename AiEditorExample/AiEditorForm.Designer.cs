@@ -24,6 +24,8 @@ namespace AiEditorExample
         private Button btnClearLog;
         private StatusStrip statusStrip;
         private ToolStripStatusLabel lblStatus;
+        private ContextMenuStrip contextMenuTab;
+        private ToolStripMenuItem menuCloseTab;
 
         private void InitializeComponent()
         {
@@ -48,7 +50,10 @@ namespace AiEditorExample
             this.btnClearLog      = new System.Windows.Forms.Button();
             this.statusStrip      = new System.Windows.Forms.StatusStrip();
             this.lblStatus        = new System.Windows.Forms.ToolStripStatusLabel();
+            this.contextMenuTab   = new System.Windows.Forms.ContextMenuStrip();
+            this.menuCloseTab     = new System.Windows.Forms.ToolStripMenuItem();
 
+            this.contextMenuTab.SuspendLayout();
             this.panelSidebar.SuspendLayout();
             this.groupEditor.SuspendLayout();
             this.groupTests.SuspendLayout();
@@ -57,6 +62,18 @@ namespace AiEditorExample
             this.statusStrip.SuspendLayout();
             this.SuspendLayout();
 
+            // ── contextMenuTab ────────────────────────────────────────────
+            this.contextMenuTab.BackColor = System.Drawing.Color.FromArgb(45, 45, 48);
+            this.contextMenuTab.ForeColor = System.Drawing.Color.FromArgb(204, 204, 204);
+            this.contextMenuTab.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { this.menuCloseTab });
+            this.contextMenuTab.Name     = "contextMenuTab";
+            this.contextMenuTab.ShowImageMargin = false;
+
+            // ── menuCloseTab ──────────────────────────────────────────────
+            this.menuCloseTab.Name   = "menuCloseTab";
+            this.menuCloseTab.Text   = "Close Tab";
+            this.menuCloseTab.Click += new System.EventHandler(this.menuCloseTab_Click);
+
             // ── tabEditors ───────────────────────────────────────────────
             this.tabEditors.Dock          = System.Windows.Forms.DockStyle.Fill;
             this.tabEditors.Location      = new System.Drawing.Point(0, 0);
@@ -64,6 +81,7 @@ namespace AiEditorExample
             this.tabEditors.SelectedIndex = 0;
             this.tabEditors.Size          = new System.Drawing.Size(784, 639);
             this.tabEditors.TabIndex      = 0;
+            this.tabEditors.MouseDown    += new System.Windows.Forms.MouseEventHandler(this.tabEditors_MouseDown);
 
             // ── panelSidebar ──────────────────────────────────────────────
             this.panelSidebar.BackColor = System.Drawing.Color.FromArgb(37, 37, 38);
@@ -316,6 +334,7 @@ namespace AiEditorExample
             this.Text                = "AI-Powered Monaco Editor";
             this.Load += new System.EventHandler(this.AiEditorForm_Load);
 
+            this.contextMenuTab.ResumeLayout(false);
             this.panelSidebar.ResumeLayout(false);
             this.groupEditor.ResumeLayout(false);
             this.groupTests.ResumeLayout(false);

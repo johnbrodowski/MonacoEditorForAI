@@ -276,7 +276,8 @@ namespace Example
             AppendCommandLog("");
 
             // Process commands against the active editor
-            var result = await _commandProcessor.ProcessCommandsAsync(responseText, editor);
+            var result = await _commandProcessor.ProcessCommandsAsync(
+                responseText, editor, _editorManager!.GetEditorNames());
 
             // Display results
             if (result.Success)
@@ -315,6 +316,41 @@ namespace Example
         {
             btnSendToAi.Enabled = true;
         }
+    }
+
+    // ── Tab close (right-click context menu) ──────────────────────────────
+
+    private string? _rightClickedTabName;
+
+    private void tabEditors_MouseDown(object sender, MouseEventArgs e)
+    {
+        if (e.Button != MouseButtons.Right) return;
+
+        for (int i = 0; i < tabEditors.TabPages.Count; i++)
+        {
+            if (tabEditors.GetTabRect(i).Contains(e.Location))
+            {
+                _rightClickedTabName = tabEditors.TabPages[i].Text;
+                // Prevent closing the very last tab
+                menuCloseTab.Enabled = tabEditors.TabPages.Count > 1;
+                contextMenuTab.Show(tabEditors, e.Location);
+                return;
+            }
+        }
+
+        _rightClickedTabName = null;
+    }
+
+    private void menuCloseTab_Click(object sender, EventArgs e)
+    {
+        if (_rightClickedTabName == null || _editorManager == null) return;
+
+        var name = _rightClickedTabName;
+        _rightClickedTabName = null;
+
+        _editorManager.RemoveEditor(name);
+        AppendCommandLog($"[Tab] Closed: {name}");
+        SetStatus($"Closed: {name}");
     }
 
     private void btnClearLog_Click(object sender, EventArgs e)

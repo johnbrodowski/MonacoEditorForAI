@@ -55,7 +55,8 @@ You must respond with ONLY valid JSON in this exact format:
     {""type"": ""deleteLineRange"", ""startLine"": 25, ""endLine"": 30},
     {""type"": ""highlightLineRange"", ""startLine"": 5, ""endLine"": 10},
     {""type"": ""clearHighlight""},
-    {""type"": ""toggleBookmark"", ""line"": 15}
+    {""type"": ""toggleBookmark"", ""line"": 15},
+    {""type"": ""listEditors""}
   ]
 }
 
@@ -68,6 +69,7 @@ Available commands:
 - highlightLineRange: Highlight a range of lines for visual emphasis (startLine, endLine)
 - clearHighlight: Clear all highlights (no parameters)
 - toggleBookmark: Toggle bookmark on a specific line (line number)
+- listEditors: Query the names of all currently open editor tabs (no parameters); the result appears in the command log
 
 CRITICAL RULES:
 1. Line numbers are 1-based (first line is 1, not 0)
@@ -78,6 +80,7 @@ CRITICAL RULES:
 6. If no changes are needed, return: {""commands"": []}
 7. Do not include the line numbers in the ""text"" field
 8. Preserve the exact indentation and formatting of the code
+9. Use listEditors to discover which editor tabs are open when you need to reference or target one by name
 
 Example valid responses:
 

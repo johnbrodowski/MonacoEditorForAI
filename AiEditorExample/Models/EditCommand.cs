@@ -14,6 +14,7 @@ namespace AiEditorExample.Models;
 [JsonDerivedType(typeof(HighlightLineRangeCommand), "highlightLineRange")]
 [JsonDerivedType(typeof(ClearHighlightCommand), "clearHighlight")]
 [JsonDerivedType(typeof(ToggleBookmarkCommand), "toggleBookmark")]
+[JsonDerivedType(typeof(ListEditorsCommand), "listEditors")]
 public abstract class EditCommand
 {
     /// <summary>

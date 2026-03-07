@@ -17,9 +17,13 @@ public class CommandProcessor
     };
 
     /// <summary>
-    /// Process commands from AI response JSON
+    /// Process commands from AI response JSON.
+    /// Pass <paramref name="editorNames"/> so that <c>listEditors</c> commands can report the open tabs.
     /// </summary>
-    public async Task<  CommandResult> ProcessCommandsAsync(string jsonResponse, MonacoEditor.MonacoEditorService editor)
+    public async Task<CommandResult> ProcessCommandsAsync(
+        string jsonResponse,
+        MonacoEditor.MonacoEditorService editor,
+        IReadOnlyList<string>? editorNames = null)
     {
         var result = new  CommandResult();
 
@@ -46,6 +50,9 @@ public class CommandProcessor
             {
                 try
                 {
+                    if (command is ListEditorsCommand listCmd)
+                        listCmd.EditorNames = editorNames ?? Array.Empty<string>();
+
                     await command.ExecuteAsync(editor);
                     result.CommandsExecuted++;
                     result.ExecutedCommands.Add(command.GetDescription());
@@ -159,6 +166,7 @@ public class CommandProcessor
                 "highlightLineRange" => JsonSerializer.Deserialize<HighlightLineRangeCommand>(element.GetRawText(), JsonOptions),
                 "clearHighlight" => JsonSerializer.Deserialize<ClearHighlightCommand>(element.GetRawText(), JsonOptions),
                 "toggleBookmark" => JsonSerializer.Deserialize<ToggleBookmarkCommand>(element.GetRawText(), JsonOptions),
+                "listEditors"   => JsonSerializer.Deserialize<ListEditorsCommand>(element.GetRawText(), JsonOptions),
                 _ => null
             };
         }
