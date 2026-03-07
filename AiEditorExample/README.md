@@ -19,6 +19,7 @@ This example demonstrates how to build an AI-powered code editor using **MonacoE
   - `toggleBookmark` - Toggle bookmarks on specific lines
 - **Command Log**: See exactly what commands the AI executed
 - **File Operations**: Load and save files
+- **Built-in Test Suite**: Three test modes verify editor correctness without needing an API key
 
 ## Prerequisites
 
@@ -154,6 +155,47 @@ Highlight the error handling code and add bookmarks to all TODO comments
 Add bookmarks to all public methods and highlight any sections that need optimization
 ```
 
+## Testing
+
+The sidebar includes three buttons that run tests against the live Monaco editor — no API key required.
+
+### Run Editor Tests
+
+Runs `EditorTestRunner.RunAllTestsAsync` — a fast, headless suite that opens a temporary tab, exercises every command type, and closes it. Results appear in the command log:
+
+```
+=== Editor Test Run ===
+✓ Insert line
+✓ Replace line
+✓ Replace line range
+✓ Delete line
+✓ Delete line range
+✓ Multi-command (bottom-to-top sort)
+=== 6/6 passed ===
+```
+
+### Watch Live Edit Test
+
+Runs `EditorTestRunner.RunWatchableTestAsync` — the same edits as above but with a ~900 ms delay between steps so you can watch each change happen in the editor tab. The tab stays open after the test so you can inspect the final state.
+
+### Simulate AI Commands
+
+Runs `EditorTestRunner.RunAiSimulationTestAsync` — feeds raw JSON strings through `CommandProcessor.ProcessCommandsAsync`, exactly as real Claude responses would arrive. Opens a `⚗ AI Sim` tab containing a C# `Calculator` class with intentional bugs and plays through five AI "turns":
+
+| Turn | Commands in JSON | What changes |
+|------|-----------------|--------------|
+| 1 | `replaceLine` + `deleteLine` | Fixes `return a + b` → `return a + b;` and removes stale TODO in one multi-command response; bottom-to-top sort is exercised |
+| 2 | `insertLine` | Adds argument validation inside `Add()` |
+| 3 | `replaceLineRange` | Rewrites the entire `Multiply()` body with the same validation |
+| 4 | `highlightLineRange` × 2, `toggleBookmark` × 2 | Marks both new validation lines |
+| 5 | `clearHighlight` | Cleans up all decorations |
+
+Turns 1–3 assert exact editor content via `GetAllTextAsync()`. Turns 4–5 verify that decoration commands do not corrupt the text.
+
+### How Correctness Is Checked
+
+After each step (or AI turn), the test runner calls `editor.GetAllTextAsync()`, normalizes line endings and trailing whitespace, and compares the result to a hardcoded expected string. A `TestCaseResult` records `Passed`, `Expected`, and `Actual` for every step. Any mismatch is printed in full to the command log so you can see exactly what diverged.
+
 ## Command Format Reference
 
 The AI responds with JSON in this format:
@@ -238,7 +280,8 @@ AiEditorExample/
 │   └── CommandResult.cs
 ├── Services/
 │   ├── CommandProcessor.cs        # Parses and executes commands
-│   └── AiPromptBuilder.cs          # Builds AI prompts
+│   ├── AiPromptBuilder.cs         # Builds AI prompts
+│   └── EditorTestRunner.cs        # Fast, watchable, and AI-simulation tests
 ├── AiEditorForm.cs                 # Main UI
 ├── AnthropicClient.cs              # AI client
 └── [Message models...]
