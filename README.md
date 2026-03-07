@@ -10,7 +10,8 @@ Built for real-time code generation, autonomous editing, and local LLM workflows
 Battle-tested in production autonomous agents.
  
 
-<img width="1201" height="628" alt="monaco" src="https://github.com/user-attachments/assets/13097625-887b-4d60-a2a1-b473b6ddcb03" />
+<img width="1192" height="696" alt="image" src="https://github.com/user-attachments/assets/53a7a831-23c4-45e6-a1fa-1f8996b78cb0" />
+
 
 This example demonstrates how to build an AI-powered code editor using **MonacoEditorService** and the **Anthropic Claude API**. The AI can edit code using a simple command-based system without requiring Anthropic's tool use feature.
 
