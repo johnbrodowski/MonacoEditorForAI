@@ -9,6 +9,7 @@ namespace AiEditorExample
         private Button btnNewEditor;
         private Button btnLoadFile;
         private Button btnSaveFile;
+        private Button btnRunTests;
         private GroupBox groupAi;
         private Label lblApiKey;
         private TextBox txtApiKey;
@@ -29,6 +30,7 @@ namespace AiEditorExample
             this.btnNewEditor = new System.Windows.Forms.Button();
             this.btnLoadFile = new System.Windows.Forms.Button();
             this.btnSaveFile = new System.Windows.Forms.Button();
+            this.btnRunTests = new System.Windows.Forms.Button();
             this.groupAi = new System.Windows.Forms.GroupBox();
             this.lblApiKey = new System.Windows.Forms.Label();
             this.txtApiKey = new System.Windows.Forms.TextBox();
@@ -71,6 +73,7 @@ namespace AiEditorExample
             //
             // groupFile
             //
+            this.groupFile.Controls.Add(this.btnRunTests);
             this.groupFile.Controls.Add(this.btnSaveFile);
             this.groupFile.Controls.Add(this.btnLoadFile);
             this.groupFile.Controls.Add(this.btnNewEditor);
@@ -79,7 +82,7 @@ namespace AiEditorExample
             this.groupFile.Location = new System.Drawing.Point(10, 10);
             this.groupFile.Name = "groupFile";
             this.groupFile.Padding = new System.Windows.Forms.Padding(8);
-            this.groupFile.Size = new System.Drawing.Size(380, 120);
+            this.groupFile.Size = new System.Drawing.Size(380, 150);
             this.groupFile.TabIndex = 0;
             this.groupFile.TabStop = false;
             this.groupFile.Text = "File Operations";
@@ -126,6 +129,20 @@ namespace AiEditorExample
             this.btnSaveFile.UseVisualStyleBackColor = false;
             this.btnSaveFile.Click += new System.EventHandler(this.btnSaveFile_Click);
             //
+            // btnRunTests
+            //
+            this.btnRunTests.BackColor = System.Drawing.Color.FromArgb(180, 90, 0);
+            this.btnRunTests.FlatAppearance.BorderSize = 0;
+            this.btnRunTests.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnRunTests.ForeColor = System.Drawing.Color.White;
+            this.btnRunTests.Location = new System.Drawing.Point(11, 115);
+            this.btnRunTests.Name = "btnRunTests";
+            this.btnRunTests.Size = new System.Drawing.Size(358, 23);
+            this.btnRunTests.TabIndex = 3;
+            this.btnRunTests.Text = "Run Editor Tests";
+            this.btnRunTests.UseVisualStyleBackColor = false;
+            this.btnRunTests.Click += new System.EventHandler(this.btnRunTests_Click);
+            //
             // groupAi
             //
             this.groupAi.Controls.Add(this.btnSendToAi);
@@ -135,7 +152,7 @@ namespace AiEditorExample
             this.groupAi.Controls.Add(this.lblApiKey);
             this.groupAi.Dock = System.Windows.Forms.DockStyle.Top;
             this.groupAi.ForeColor = System.Drawing.Color.White;
-            this.groupAi.Location = new System.Drawing.Point(10, 130);
+            this.groupAi.Location = new System.Drawing.Point(10, 160);
             this.groupAi.Name = "groupAi";
             this.groupAi.Padding = new System.Windows.Forms.Padding(8);
             this.groupAi.Size = new System.Drawing.Size(380, 240);
@@ -200,10 +217,10 @@ namespace AiEditorExample
             this.groupLog.Controls.Add(this.txtCommandLog);
             this.groupLog.Dock = System.Windows.Forms.DockStyle.Fill;
             this.groupLog.ForeColor = System.Drawing.Color.White;
-            this.groupLog.Location = new System.Drawing.Point(10, 370);
+            this.groupLog.Location = new System.Drawing.Point(10, 400);
             this.groupLog.Name = "groupLog";
             this.groupLog.Padding = new System.Windows.Forms.Padding(8);
-            this.groupLog.Size = new System.Drawing.Size(380, 189);
+            this.groupLog.Size = new System.Drawing.Size(380, 159);
             this.groupLog.TabIndex = 2;
             this.groupLog.TabStop = false;
             this.groupLog.Text = "Command Log";
@@ -219,7 +236,7 @@ namespace AiEditorExample
             this.txtCommandLog.Name = "txtCommandLog";
             this.txtCommandLog.ReadOnly = true;
             this.txtCommandLog.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.txtCommandLog.Size = new System.Drawing.Size(364, 128);
+            this.txtCommandLog.Size = new System.Drawing.Size(364, 97);
             this.txtCommandLog.TabIndex = 0;
             //
             // btnClearLog
@@ -229,7 +246,7 @@ namespace AiEditorExample
             this.btnClearLog.FlatAppearance.BorderSize = 0;
             this.btnClearLog.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnClearLog.ForeColor = System.Drawing.Color.White;
-            this.btnClearLog.Location = new System.Drawing.Point(8, 152);
+            this.btnClearLog.Location = new System.Drawing.Point(8, 121);
             this.btnClearLog.Name = "btnClearLog";
             this.btnClearLog.Size = new System.Drawing.Size(364, 29);
             this.btnClearLog.TabIndex = 1;

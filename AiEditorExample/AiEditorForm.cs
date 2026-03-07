@@ -72,6 +72,35 @@ namespace Example
         }
     }
 
+    private async void btnRunTests_Click(object sender, EventArgs e)
+    {
+        if (_editorManager == null) return;
+
+        btnRunTests.Enabled = false;
+        SetStatus("Running editor tests...");
+        AppendCommandLog("=== Editor Test Run ===");
+
+        var runner = new EditorTestRunner();
+        var results = await runner.RunAllTestsAsync(_editorManager);
+
+        int passed = results.Count(r => r.Passed);
+
+        foreach (var r in results)
+        {
+            AppendCommandLog($"{(r.Passed ? "✓" : "✗")} {r.Name}");
+            if (!r.Passed)
+            {
+                AppendCommandLog($"    Expected: {r.Expected}");
+                AppendCommandLog($"    Actual:   {r.Actual}");
+            }
+        }
+
+        AppendCommandLog($"=== {passed}/{results.Count} passed ===");
+        AppendCommandLog("");
+        SetStatus($"Tests: {passed} passed, {results.Count - passed} failed");
+        btnRunTests.Enabled = true;
+    }
+
     private async void btnLoadFile_Click(object sender, EventArgs e)
     {
         var editor = _editorManager?.GetActiveEditor();
@@ -160,8 +189,13 @@ namespace Example
 
             SetStatus("Sending request to AI...");
 
-            // Build request
-            var request = _promptBuilder.BuildRequest(codeWithLineNumbers, instruction, apiKey);
+            // Build request with multi-editor context
+            var request = _promptBuilder.BuildRequest(
+                codeWithLineNumbers,
+                instruction,
+                apiKey,
+                editorName: editorName,
+                allEditorNames: _editorManager!.GetEditorNames());
 
             // Send to AI
             _aiClient?.Dispose();
