@@ -11,6 +11,7 @@ namespace AiEditorExample
         private Button btnSaveFile;
         private Button btnRunTests;
         private Button btnWatchTest;
+        private Button btnAiSimTest;
         private GroupBox groupAi;
         private Label lblApiKey;
         private TextBox txtApiKey;
@@ -33,6 +34,7 @@ namespace AiEditorExample
             this.btnSaveFile = new System.Windows.Forms.Button();
             this.btnRunTests = new System.Windows.Forms.Button();
             this.btnWatchTest = new System.Windows.Forms.Button();
+            this.btnAiSimTest = new System.Windows.Forms.Button();
             this.groupAi = new System.Windows.Forms.GroupBox();
             this.lblApiKey = new System.Windows.Forms.Label();
             this.txtApiKey = new System.Windows.Forms.TextBox();
@@ -75,6 +77,7 @@ namespace AiEditorExample
             //
             // groupFile
             //
+            this.groupFile.Controls.Add(this.btnAiSimTest);
             this.groupFile.Controls.Add(this.btnWatchTest);
             this.groupFile.Controls.Add(this.btnRunTests);
             this.groupFile.Controls.Add(this.btnSaveFile);
@@ -85,7 +88,7 @@ namespace AiEditorExample
             this.groupFile.Location = new System.Drawing.Point(10, 10);
             this.groupFile.Name = "groupFile";
             this.groupFile.Padding = new System.Windows.Forms.Padding(8);
-            this.groupFile.Size = new System.Drawing.Size(380, 180);
+            this.groupFile.Size = new System.Drawing.Size(380, 210);
             this.groupFile.TabIndex = 0;
             this.groupFile.TabStop = false;
             this.groupFile.Text = "File Operations";
@@ -159,6 +162,20 @@ namespace AiEditorExample
             this.btnWatchTest.Text = "Watch Live Edit Test";
             this.btnWatchTest.UseVisualStyleBackColor = false;
             this.btnWatchTest.Click += new System.EventHandler(this.btnWatchTest_Click);
+            //
+            // btnAiSimTest
+            //
+            this.btnAiSimTest.BackColor = System.Drawing.Color.FromArgb(0, 90, 140);
+            this.btnAiSimTest.FlatAppearance.BorderSize = 0;
+            this.btnAiSimTest.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnAiSimTest.ForeColor = System.Drawing.Color.White;
+            this.btnAiSimTest.Location = new System.Drawing.Point(11, 173);
+            this.btnAiSimTest.Name = "btnAiSimTest";
+            this.btnAiSimTest.Size = new System.Drawing.Size(358, 23);
+            this.btnAiSimTest.TabIndex = 5;
+            this.btnAiSimTest.Text = "Simulate AI Commands";
+            this.btnAiSimTest.UseVisualStyleBackColor = false;
+            this.btnAiSimTest.Click += new System.EventHandler(this.btnAiSimTest_Click);
             //
             // groupAi
             //

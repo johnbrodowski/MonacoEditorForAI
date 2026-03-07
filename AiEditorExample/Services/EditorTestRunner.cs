@@ -156,6 +156,141 @@ public class EditorTestRunner
     }
 
     /// <summary>
+    /// Simulates a realistic AI editing session by feeding raw JSON responses through the
+    /// CommandProcessor, exactly as the real AI flow does. Runs on a single tab with a
+    /// delay between turns so the edits are visible. Returns one result per AI turn.
+    /// </summary>
+    public async Task<List<TestCaseResult>> RunAiSimulationTestAsync(
+        MonacoEditorManager manager,
+        TimeSpan? stepDelay = null)
+    {
+        var delay = stepDelay ?? TimeSpan.FromMilliseconds(900);
+        var results = new List<TestCaseResult>();
+        var processor = new CommandProcessor();
+
+        const string tabName = "⚗ AI Sim";
+        manager.RemoveEditor(tabName);
+
+        // Initial code: a Calculator with a missing semicolon and a stale TODO
+        const string initial =
+            "public class Calculator\n" +
+            "{\n" +
+            "    public int Add(int a, int b)\n" +
+            "    {\n" +
+            "        // TODO: validate inputs\n" +
+            "        return a + b\n" +
+            "    }\n" +
+            "\n" +
+            "    public int Multiply(int a, int b)\n" +
+            "    {\n" +
+            "        return a * b;\n" +
+            "    }\n" +
+            "}";
+
+        var editor = await manager.CreateEditorAsync(tabName, initial, "csharp");
+
+        async Task<TestCaseResult> Turn(string name, string json, string expected)
+        {
+            try
+            {
+                var cmdResult = await processor.ProcessCommandsAsync(json, editor);
+                await Task.Delay(delay);
+
+                if (!cmdResult.Success)
+                    return new TestCaseResult(name, false, expected, $"COMMANDS FAILED: {cmdResult.Message}");
+
+                var actual = Normalize(await editor.GetAllTextAsync());
+                var exp = Normalize(expected);
+                return new TestCaseResult(name, actual == exp, exp, actual);
+            }
+            catch (Exception ex)
+            {
+                return new TestCaseResult(name, false, expected, $"EXCEPTION: {ex.Message}");
+            }
+        }
+
+        // Turn 1 – Fix the syntax error and remove the TODO in one response (multi-command,
+        //          bottom-to-top sort means line 6 is replaced before line 5 is deleted)
+        results.Add(await Turn("Fix syntax & remove TODO",
+            """{"commands":[{"type":"replaceLine","line":6,"text":"        return a + b;"},{"type":"deleteLine","line":5}]}""",
+            "public class Calculator\n" +
+            "{\n" +
+            "    public int Add(int a, int b)\n" +
+            "    {\n" +
+            "        return a + b;\n" +
+            "    }\n" +
+            "\n" +
+            "    public int Multiply(int a, int b)\n" +
+            "    {\n" +
+            "        return a * b;\n" +
+            "    }\n" +
+            "}"));
+
+        // Turn 2 – Insert input validation into Add() before the return
+        results.Add(await Turn("Add validation to Add()",
+            """{"commands":[{"type":"insertLine","line":5,"text":"        if (a < 0 || b < 0) throw new ArgumentException();"}]}""",
+            "public class Calculator\n" +
+            "{\n" +
+            "    public int Add(int a, int b)\n" +
+            "    {\n" +
+            "        if (a < 0 || b < 0) throw new ArgumentException();\n" +
+            "        return a + b;\n" +
+            "    }\n" +
+            "\n" +
+            "    public int Multiply(int a, int b)\n" +
+            "    {\n" +
+            "        return a * b;\n" +
+            "    }\n" +
+            "}"));
+
+        // Turn 3 – Rewrite Multiply() with the same validation (replaceLineRange)
+        results.Add(await Turn("Add validation to Multiply()",
+            """{"commands":[{"type":"replaceLineRange","startLine":9,"endLine":12,"text":"    public int Multiply(int a, int b)\n    {\n        if (a < 0 || b < 0) throw new ArgumentException();\n        return a * b;\n    }"}]}""",
+            "public class Calculator\n" +
+            "{\n" +
+            "    public int Add(int a, int b)\n" +
+            "    {\n" +
+            "        if (a < 0 || b < 0) throw new ArgumentException();\n" +
+            "        return a + b;\n" +
+            "    }\n" +
+            "\n" +
+            "    public int Multiply(int a, int b)\n" +
+            "    {\n" +
+            "        if (a < 0 || b < 0) throw new ArgumentException();\n" +
+            "        return a * b;\n" +
+            "    }\n" +
+            "}"));
+
+        // Turn 4 – Highlight both new validation lines and bookmark them (no text change)
+        const string afterTurn3 =
+            "public class Calculator\n" +
+            "{\n" +
+            "    public int Add(int a, int b)\n" +
+            "    {\n" +
+            "        if (a < 0 || b < 0) throw new ArgumentException();\n" +
+            "        return a + b;\n" +
+            "    }\n" +
+            "\n" +
+            "    public int Multiply(int a, int b)\n" +
+            "    {\n" +
+            "        if (a < 0 || b < 0) throw new ArgumentException();\n" +
+            "        return a * b;\n" +
+            "    }\n" +
+            "}";
+
+        results.Add(await Turn("Highlight & bookmark new lines",
+            """{"commands":[{"type":"highlightLineRange","startLine":5,"endLine":5},{"type":"highlightLineRange","startLine":11,"endLine":11},{"type":"toggleBookmark","line":5},{"type":"toggleBookmark","line":11}]}""",
+            afterTurn3));
+
+        // Turn 5 – Clear all highlights (no text change)
+        results.Add(await Turn("Clear highlights",
+            """{"commands":[{"type":"clearHighlight"}]}""",
+            afterTurn3));
+
+        return results;
+    }
+
+    /// <summary>
     /// Runs all edit operations sequentially on a single editor so you can watch each
     /// change happen. A short delay is inserted between steps for visibility.
     /// Returns one result per step.

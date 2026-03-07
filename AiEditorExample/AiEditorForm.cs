@@ -132,6 +132,35 @@ namespace Example
         btnWatchTest.Enabled = true;
     }
 
+    private async void btnAiSimTest_Click(object sender, EventArgs e)
+    {
+        if (_editorManager == null) return;
+
+        btnAiSimTest.Enabled = false;
+        SetStatus("Running AI simulation test...");
+        AppendCommandLog("=== AI Command Simulation ===");
+
+        var runner = new EditorTestRunner();
+        var results = await runner.RunAiSimulationTestAsync(_editorManager);
+
+        int passed = results.Count(r => r.Passed);
+
+        foreach (var r in results)
+        {
+            AppendCommandLog($"{(r.Passed ? "✓" : "✗")} {r.Name}");
+            if (!r.Passed)
+            {
+                AppendCommandLog($"    Expected: {r.Expected}");
+                AppendCommandLog($"    Actual:   {r.Actual}");
+            }
+        }
+
+        AppendCommandLog($"=== {passed}/{results.Count} passed ===");
+        AppendCommandLog("");
+        SetStatus($"AI sim: {passed} passed, {results.Count - passed} failed");
+        btnAiSimTest.Enabled = true;
+    }
+
     private async void btnLoadFile_Click(object sender, EventArgs e)
     {
         var editor = _editorManager?.GetActiveEditor();
