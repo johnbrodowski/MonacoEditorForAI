@@ -7,8 +7,7 @@ Seamless Monaco Editor (VS Code's core) integration for .NET AI/agent applicatio
 
 Built for real-time code generation, autonomous editing, and local LLM workflows — with streaming support, dynamic language switching, and file sync.
 
-Battle-tested in production autonomous agents.
- 
+
 
 <img width="1192" height="696" alt="image" src="https://github.com/user-attachments/assets/53a7a831-23c4-45e6-a1fa-1f8996b78cb0" />
 
