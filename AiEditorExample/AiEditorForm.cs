@@ -60,7 +60,9 @@ namespace Example
 
         try
         {
-            var name = $"Editor {_editorManager.Count + 1}";
+            var n = 1;
+            string name;
+            do { name = $"Editor {n++}"; } while (_editorManager.GetEditor(name) != null);
             SetStatus($"Creating {name}...");
             await _editorManager.CreateEditorAsync(name, "", "plaintext");
             SetStatus($"{name} ready");

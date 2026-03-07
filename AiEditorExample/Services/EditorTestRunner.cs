@@ -165,6 +165,7 @@ public class EditorTestRunner
         var suffix = _runCounter > 1 ? $" ({_runCounter})" : "";
         var tabName = $"⚗ Live{suffix}";
 
+        manager.RemoveEditor(tabName); // close any previous run's tab
         var editor = await manager.CreateEditorAsync(tabName, "", "javascript");
 
         async Task<TestCaseResult> Step(string name, Func<Task> action, string expected)
