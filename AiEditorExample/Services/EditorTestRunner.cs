@@ -165,7 +165,7 @@ public class EditorTestRunner
         var suffix = _runCounter > 1 ? $" ({_runCounter})" : "";
         var tabName = $"⚗ Live{suffix}";
 
-        var editor = await manager.CreateEditorAsync(tabName, "", "plaintext");
+        var editor = await manager.CreateEditorAsync(tabName, "", "javascript");
 
         async Task<TestCaseResult> Step(string name, Func<Task> action, string expected)
         {
@@ -183,35 +183,79 @@ public class EditorTestRunner
             }
         }
 
-        // Step 1 – SetValue
+        const string initial =
+            "// Math utilities\n" +
+            "function add(a, b) {\n" +
+            "    return a + b;\n" +
+            "}\n" +
+            "\n" +
+            "function multiply(a, b) {\n" +
+            "    return a * b;\n" +
+            "}";
+
+        // Step 1 – SetValue: load the initial file
         results.Add(await Step("SetValue",
-            () => editor.SetValueAsync("line1\nline2\nline3\nline4"),
-            "line1\nline2\nline3\nline4"));
+            () => editor.SetValueAsync(initial),
+            initial));
 
-        // Step 2 – InsertLine: insert before line 2
+        // Step 2 – InsertLine: add a TODO comment inside add(), before the return
         results.Add(await Step("InsertLine",
-            () => new InsertLineCommand { Line = 2, Text = "inserted" }.ExecuteAsync(editor),
-            "line1\ninserted\nline2\nline3\nline4"));
+            () => new InsertLineCommand { Line = 3, Text = "    // TODO: add overflow check" }.ExecuteAsync(editor),
+            "// Math utilities\n" +
+            "function add(a, b) {\n" +
+            "    // TODO: add overflow check\n" +
+            "    return a + b;\n" +
+            "}\n" +
+            "\n" +
+            "function multiply(a, b) {\n" +
+            "    return a * b;\n" +
+            "}"));
 
-        // Step 3 – ReplaceLine: replace line 3 (currently "line2")
+        // Step 3 – ReplaceLine: annotate multiply's return statement
         results.Add(await Step("ReplaceLine",
-            () => new ReplaceLineCommand { Line = 3, Text = "replaced" }.ExecuteAsync(editor),
-            "line1\ninserted\nreplaced\nline3\nline4"));
+            () => new ReplaceLineCommand { Line = 8, Text = "    return a * b; // product" }.ExecuteAsync(editor),
+            "// Math utilities\n" +
+            "function add(a, b) {\n" +
+            "    // TODO: add overflow check\n" +
+            "    return a + b;\n" +
+            "}\n" +
+            "\n" +
+            "function multiply(a, b) {\n" +
+            "    return a * b; // product\n" +
+            "}"));
 
-        // Step 4 – ReplaceRange: collapse lines 2-3 into one
+        // Step 4 – ReplaceRange: rewrite multiply as subtract
         results.Add(await Step("ReplaceRange",
-            () => new ReplaceLineRangeCommand { StartLine = 2, EndLine = 3, Text = "newline" }.ExecuteAsync(editor),
-            "line1\nnewline\nline3\nline4"));
+            () => new ReplaceLineRangeCommand { StartLine = 7, EndLine = 9, Text = "function subtract(a, b) {\n    return a - b;\n}" }.ExecuteAsync(editor),
+            "// Math utilities\n" +
+            "function add(a, b) {\n" +
+            "    // TODO: add overflow check\n" +
+            "    return a + b;\n" +
+            "}\n" +
+            "\n" +
+            "function subtract(a, b) {\n" +
+            "    return a - b;\n" +
+            "}"));
 
-        // Step 5 – DeleteLine: remove line 4
+        // Step 5 – DeleteLine: remove the TODO (decided it's not needed)
         results.Add(await Step("DeleteLine",
-            () => new DeleteLineCommand { Line = 4 }.ExecuteAsync(editor),
-            "line1\nnewline\nline3"));
+            () => new DeleteLineCommand { Line = 3 }.ExecuteAsync(editor),
+            "// Math utilities\n" +
+            "function add(a, b) {\n" +
+            "    return a + b;\n" +
+            "}\n" +
+            "\n" +
+            "function subtract(a, b) {\n" +
+            "    return a - b;\n" +
+            "}"));
 
-        // Step 6 – DeleteRange: remove lines 2-3
+        // Step 6 – DeleteRange: drop the blank line + subtract, keep only add
         results.Add(await Step("DeleteRange",
-            () => new DeleteLineRangeCommand { StartLine = 2, EndLine = 3 }.ExecuteAsync(editor),
-            "line1"));
+            () => new DeleteLineRangeCommand { StartLine = 5, EndLine = 8 }.ExecuteAsync(editor),
+            "// Math utilities\n" +
+            "function add(a, b) {\n" +
+            "    return a + b;\n" +
+            "}"));
 
         return results;
     }
